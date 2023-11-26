@@ -44,8 +44,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 final product = productProvider.products
                     .firstWhere((element) => element.id == widget.productId);
                 final suppliers = supplierProvider.suppliers;
-                print(product);
-                print(suppliers);
 
                 return ListView.builder(
                   shrinkWrap: true,
