@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:compare_prices/data/model/product_model.dart';
+import 'package:compare_prices/data/model/supplier_model.dart';
 import 'package:compare_prices/provider/product_provider.dart';
 import 'package:compare_prices/provider/supplier_provider.dart';
 import 'package:compare_prices/view/screen/product/add_product/success_screen.dart';
@@ -63,17 +64,54 @@ class _EditProductScreenState extends State<EditProductScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              FormBuilderTextField(
-                initialValue: context
-                    .watch<ProductProvider>()
-                    .products
-                    .firstWhere((element) => element.id == widget.productId)
-                    .name,
-                name: 'product_name',
-                decoration: const InputDecoration(labelText: 'Product Name'),
-                validator: FormBuilderValidators.compose([
-                  FormBuilderValidators.required(),
-                ]),
+              Row(
+                children: [
+                  Expanded(
+                    child: FormBuilderTextField(
+                      enabled:
+                          context.watch<ProductProvider>().isEditingProductName,
+                      initialValue: context
+                          .watch<ProductProvider>()
+                          .products
+                          .firstWhere(
+                              (element) => element.id == widget.productId)
+                          .name,
+                      name: 'product_name',
+                      decoration:
+                          const InputDecoration(labelText: 'Product Name'),
+                      validator: FormBuilderValidators.compose([
+                        FormBuilderValidators.required(),
+                      ]),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Visibility(
+                    child: IconButton(
+                      onPressed: () {
+                        print('cancel');
+                        context
+                            .read<ProductProvider>()
+                            .setIsEditingProductName(false);
+                      },
+                      icon: const Icon(Icons.cancel),
+                    ),
+                    visible:
+                        context.watch<ProductProvider>().isEditingProductName,
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      context.read<ProductProvider>().setIsEditingProductName(
+                          !context
+                              .read<ProductProvider>()
+                              .isEditingProductName);
+                      print('save product name');
+                    },
+                    icon: Icon(
+                        context.watch<ProductProvider>().isEditingProductName
+                            ? Icons.save
+                            : Icons.edit),
+                  ),
+                ],
               ),
               InkWell(
                 onTap: () async {
@@ -309,74 +347,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
               const SizedBox(height: 10),
               // button to add an other supplier for this product
-
-              MaterialButton(
-                color: Theme.of(context).colorScheme.secondary,
-                onPressed: () {
-                  // Validate and save the form values
-                  if (_formKey.currentState!.saveAndValidate()) {
-                    debugPrint(_formKey.currentState?.value.toString());
-                    List<Map<String, dynamic>> initialPrices = context
-                        .read<ProductProvider>()
-                        .products
-                        .firstWhere((element) => element.id == widget.productId)
-                        .prices
-                        .toList()
-                        .map((e) => e.toJson())
-                        .toList();
-                    print(initialPrices);
-                    print(_formKey.currentState?.value);
-                    List<Map<String, dynamic>> suppliersData = _formKey
-                            .currentState?.value.keys
-                            .where((element) => element.contains("supplier"))
-                            .map((e) {
-                          List<Map<String, dynamic>> list = context
-                              .read<ProductProvider>()
-                              .suppliersId
-                              .toList()
-                              .map((e) => e)
-                              .toList();
-                          print(list);
-                          return {
-                            "supplierId": 'test',
-                            "price": 10,
-                          };
-                        }).toList() ??
-                        [];
-                    print(suppliersData);
-
-                    /*context
-                          .read<ProductProvider>()
-                          .createProduct(
-                              _formKey.currentState?.value['product_name'],
-                              '',
-                              list,
-                              context.read<AuthenticationProvider>().user)
-                          .then(
-                            (value) => Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SuccessScreen(
-                                  productId: value!,
-                                ),
-                              ),
-                            ),
-                          );*/
-                  }
-                  /*}*/
-                },
-                child: context.watch<ProductProvider>().isLoading
-                    ? Container(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                        ))
-                    : const Text(
-                        'Submit',
-                        style: TextStyle(color: Colors.white),
-                      ),
-              ),
             ],
           ),
         ),

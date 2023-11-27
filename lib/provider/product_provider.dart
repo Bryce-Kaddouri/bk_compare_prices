@@ -50,6 +50,22 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isEditingProductName = false;
+  bool get isEditingProductName => _isEditingProductName;
+
+  void setIsEditingProductName(bool isEditingProductName) {
+    _isEditingProductName = isEditingProductName;
+    notifyListeners();
+  }
+
+  bool _isEditingProductPhoto = false;
+  bool get isEditingProductPhoto => _isEditingProductPhoto;
+
+  void setIsEditingProductPhoto(bool isEditingProductPhoto) {
+    _isEditingProductPhoto = isEditingProductPhoto;
+    notifyListeners();
+  }
+
   void getProducts(User? user) async {
     setLoading(true);
     try {
