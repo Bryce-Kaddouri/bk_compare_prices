@@ -1,5 +1,6 @@
 import 'package:compare_prices/data/model/supplier_model.dart';
 import 'package:compare_prices/provider/supplier_provider.dart';
+import 'package:compare_prices/view/screen/product/product_detail/edit_product/edit_product_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -35,6 +36,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Product Detail'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProductScreen(
+                    productId: widget.productId,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.edit),
+          ),
+        ],
       ),
       body: Container(
         child: Column(

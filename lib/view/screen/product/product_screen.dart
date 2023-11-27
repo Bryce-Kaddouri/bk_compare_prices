@@ -127,18 +127,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                 ),
                               ),
                             ),
-                            PopupMenuButton(itemBuilder: (context) {
-                              return [
-                                PopupMenuItem(
-                                  child: Text("Edit"),
-                                  value: "edit",
-                                ),
-                                PopupMenuItem(
-                                  child: Text("Delete"),
-                                  value: "delete",
-                                ),
-                              ];
-                            })
                           ],
                         ),
                       ),

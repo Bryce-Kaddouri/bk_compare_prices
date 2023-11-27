@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
     print("MyApp build");
     print(context.watch<AuthenticationProvider>().user);
     return GetMaterialApp(
-      title: 'Flutter Demo',
+      title: 'BK Compare Prices',
       theme: lightTheme,
       home: StreamBuilder<User?>(
         stream: context.watch<AuthenticationProvider>().authStateChanges,
