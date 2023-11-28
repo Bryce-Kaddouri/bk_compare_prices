@@ -66,6 +66,14 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isAddingPrice = false;
+  bool get isAddingPrice => _isAddingPrice;
+
+  void setIsAddingPrice(bool isAddingPrice) {
+    _isAddingPrice = isAddingPrice;
+    notifyListeners();
+  }
+
   void getProducts(User? user) async {
     setLoading(true);
     try {
@@ -95,6 +103,11 @@ class ProductProvider with ChangeNotifier {
       HandleException.handleException(e.code, message: e.message);
     }
     setLoading(false);
+  }
+
+  void setIsEditingPrice(bool isEditingPrice, int index) {
+    _suppliersId[index]["isEditing"] = isEditingPrice;
+    notifyListeners();
   }
 
   Future<String?> createProduct(String productName, String photoUrl,
@@ -128,6 +141,7 @@ class ProductProvider with ChangeNotifier {
     setLoading(true);
     try {
       product["updatedAt"] = DateTime.now();
+      print(product["prices"]);
 
       _firestoreRepo.updateProduct(product, user, productId);
       print("updateSupplier");
@@ -183,5 +197,23 @@ class ProductProvider with ChangeNotifier {
       Map<String, dynamic> last, List<Map<String, dynamic>> suppliersData) {
     suppliersData.remove(last);
     setSuppliersId(suppliersData);
+    notifyListeners();
+  }
+
+  void deletePriceProductBySupplierId(
+      User? user, String productId, String supplierId) {
+    if (user!.uid == null) {
+      throw Exception("Invalid user");
+    }
+    print("deletePriceProductBySupplierId");
+    setLoading(true);
+    try {
+      _firestoreRepo.deletePriceProductBySupplierId(
+          user, supplierId, productId);
+      print("deletePriceProductBySupplierId");
+    } on FirebaseException catch (e) {
+      HandleException.handleException(e.code, message: e.message);
+    }
+    setLoading(false);
   }
 }

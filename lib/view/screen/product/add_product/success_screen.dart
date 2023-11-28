@@ -9,7 +9,9 @@ import '../../../../provider/auth_provider.dart';
 
 class SuccessScreen extends StatelessWidget {
   String productId;
-  SuccessScreen({Key? key, required this.productId}) : super(key: key);
+  Function? onDone;
+  SuccessScreen({Key? key, required this.productId, this.onDone})
+      : super(key: key);
 
   final StorageRepo _storageRepo = StorageRepo(FirebaseStorage.instance);
 
@@ -96,12 +98,16 @@ class SuccessScreen extends StatelessWidget {
                               MaterialButton(
                                 color: Theme.of(context).colorScheme.secondary,
                                 onPressed: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ProductScreen(),
-                                    ),
-                                  );
+                                  if (onDone != null) {
+                                    onDone!();
+                                  } else {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProductScreen(),
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: const Text("Return to Product"),
                               ),
