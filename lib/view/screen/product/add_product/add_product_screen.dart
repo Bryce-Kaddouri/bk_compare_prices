@@ -25,12 +25,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      context.read<ProductProvider>().reset();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _formKey.currentState?.reset();
 
       context
           .read<SupplierProvider>()
           .getSuppliers(context.read<AuthenticationProvider>().user!);
+      context.read<ProductProvider>().reset();
+
+
     });
   }
 

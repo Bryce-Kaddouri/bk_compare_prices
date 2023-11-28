@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:compare_prices/data/model/product_model.dart';
 import 'package:compare_prices/provider/product_provider.dart';
 import 'package:compare_prices/provider/supplier_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,35 +26,53 @@ class EditProductScreen extends StatefulWidget {
 class _EditProductScreenState extends State<EditProductScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
 
+  void loadData() {
+    print("initState");
+    context.read<ProductProvider>().reset();
+
+    context
+        .read<SupplierProvider>()
+        .getSuppliers(context.read<AuthenticationProvider>().user!);
+    context.read<ProductProvider>().getProductById(
+        context.read<AuthenticationProvider>().user!, widget.productId);
+    print('selected product');
+    print(context.read<ProductProvider>().selectedProduct);
+    List<PriceModel> prices = context.read<ProductProvider>().selectedProduct!.prices;
+                    List<Map<String, dynamic>> list = [];
+                    for (var element in prices) {
+                      list.add({
+                        "supplierId": element.supplierId,
+                        "price": element.price,
+                        "isEditing": false,
+                      });
+                    }
+
+                    context.read<ProductProvider>().setSuppliersId(list);
+
+
+   /* List<Map<String, dynamic>> list = [];
+    for (var element in product.prices) {
+      list.add({
+        "supplierId": element.supplierId,
+        "price": element.price,
+        "isEditing": false,
+      });
+    }
+    context.read<ProductProvider>().setSuppliersId(list);*/
+    print(context.read<ProductProvider>().products);
+  }
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      context.read<ProductProvider>().reset();
-
-      context
-          .read<SupplierProvider>()
-          .getSuppliers(context.read<AuthenticationProvider>().user!);
-      final product = context
-          .read<ProductProvider>()
-          .products
-          .firstWhere((element) => element.id == widget.productId);
-      List<Map<String, dynamic>> list = [];
-      product.prices.forEach((element) {
-        list.add({
-          "supplierId": element.supplierId,
-          "price": element.price,
-          "isEditing": false,
-        });
-      });
-      context.read<ProductProvider>().setSuppliersId(list);
-      print(context.read<ProductProvider>().suppliersId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadData();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    print(context.read<ProductProvider>().suppliersId);
+
 
     return Scaffold(
       appBar: AppBar(
@@ -83,9 +102,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                             .isEditingProductName,
                         initialValue: context
                             .watch<ProductProvider>()
-                            .products
-                            .firstWhere(
-                                (element) => element.id == widget.productId)
+                            .selectedProduct!
                             .name,
                         name: 'product_name',
                         decoration:
@@ -138,9 +155,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                       child: context.watch<ProductProvider>().imageFile == null
                           ? Image.network(context
                               .watch<ProductProvider>()
-                              .products
-                              .firstWhere(
-                                  (element) => element.id == widget.productId)
+                              .selectedProduct!
                               .photoUrl)
                           : kIsWeb
                               ? Image.network(context
@@ -218,13 +233,27 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 const SizedBox(height: 10),
                 Consumer<ProductProvider>(
                   builder: (context, productProvider, child) {
-                    print(productProvider.suppliersId);
+                    print('suppliersId');
+                    print(productProvider.selectedProduct!.toJson());
 
+                  if(productProvider.selectedProduct != null) {
+                    /*List<PriceModel> prices = productProvider.selectedProduct!.prices;
+                    List<Map<String, dynamic>> list = [];
+                    for (var element in prices) {
+                      list.add({
+                        "supplierId": element.supplierId,
+                        "price": element.price,
+                        "isEditing": false,
+                      });
+                    }*/
+/*
+                    context.read<ProductProvider>().setSuppliersId(list);
+*/
                     return Column(
                       children: [
                         for (int i = 0;
-                            i < productProvider.suppliersId.length;
-                            i++)
+                        i < productProvider.selectedProduct!.prices.length;
+                        i++)
                           Container(
                             padding: const EdgeInsets.all(8),
                             child: Row(
@@ -235,15 +264,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                     name: 'supplier_$i',
                                     items: [
                                       DropdownMenuItem(
-                                        value: productProvider.suppliersId[i]
-                                            ['supplierId'],
+                                        value: productProvider.selectedProduct!.prices[i]
+                                            .supplierId,
                                         child: Text(context
                                             .watch<SupplierProvider>()
                                             .suppliers
                                             .firstWhere((element) =>
-                                                element.id ==
-                                                productProvider.suppliersId[i]
-                                                    ['supplierId'])
+                                        element.id ==
+                                            productProvider.selectedProduct!.prices[i]
+                                                .supplierId)
                                             .name),
                                       ),
                                     ],
@@ -251,16 +280,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                       labelText: 'Supplier ${i + 1}',
                                       disabledBorder: OutlineInputBorder(
                                         borderRadius:
-                                            BorderRadius.circular(8.0),
+                                        BorderRadius.circular(8.0),
                                         borderSide:
-                                            BorderSide(color: Colors.black),
+                                        BorderSide(color: Colors.black),
                                       ),
                                     ),
                                     validator: FormBuilderValidators.compose([
                                       FormBuilderValidators.required(),
                                     ]),
                                     initialValue: productProvider.suppliersId[i]
-                                        ['supplierId'],
+                                    ['supplierId'],
                                   ),
                                 ),
                                 Container(
@@ -271,7 +300,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                         .read<ProductProvider>()
                                         .suppliersId[i]['isEditing'],
                                     initialValue: productProvider.suppliersId[i]
-                                            ['price']
+                                    ['price']
                                         .toString(),
                                     name: 'price_$i',
                                     decoration: InputDecoration(
@@ -280,7 +309,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                         borderSide: const BorderSide(
                                             color: Colors.black),
                                         borderRadius:
-                                            BorderRadius.circular(8.0),
+                                        BorderRadius.circular(8.0),
                                       ),
                                     ),
                                     validator: FormBuilderValidators.compose([
@@ -291,13 +320,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                 ),
                                 IconButton(
                                   onPressed: () {
-                                    context
+                                   context
                                         .read<ProductProvider>()
                                         .setIsEditingPrice(
-                                            !context
-                                                .read<ProductProvider>()
-                                                .suppliersId[i]['isEditing'],
-                                            i);
+                                        !context
+                                            .read<ProductProvider>()
+                                            .suppliersId[i]['isEditing'],
+                                        i);
                                     if (!context
                                         .read<ProductProvider>()
                                         .suppliersId[i]['isEditing']) {
@@ -319,7 +348,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                         context
                                             .read<ProductProvider>()
                                             .updateProduct(
-                                                {
+                                            {
                                               "prices": [
                                                 {
                                                   "supplierId": supplierId,
@@ -327,34 +356,22 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                                 },
                                               ],
                                             },
-                                                productId,
-                                                context
-                                                    .read<
-                                                        AuthenticationProvider>()
-                                                    .user!);
+                                            productId,
+                                            context
+                                                .read<
+                                                AuthenticationProvider>()
+                                                .user!);
                                       }
-                                      print(user);
-                                      print(productId);
-                                      print(supplierId);
-                                      print(initialPrice);
-                                      print(price);
                                     }
                                   },
                                   icon: Icon(context
-                                          .read<ProductProvider>()
-                                          .suppliersId[i]['isEditing']
+                                      .read<ProductProvider>()
+                                      .suppliersId[i]['isEditing']
                                       ? Icons.save
                                       : Icons.edit),
                                 ),
                                 IconButton(
                                   onPressed: () {
-                                    /* context
-                                        .read<ProductProvider>()
-                                        .setIsEditingPrice(
-                                        !context
-                                            .read<ProductProvider>()
-                                            .suppliersId[i]['isEditing'],
-                                        i);*/
                                     Get.dialog(
                                       AlertDialog(
                                         title: const Text("Delete"),
@@ -380,7 +397,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                                           .suppliersId);*/
                                               User? user = context
                                                   .read<
-                                                      AuthenticationProvider>()
+                                                  AuthenticationProvider>()
                                                   .user;
                                               String productId = widget
                                                   .productId; //context.read<ProductProvider>().products.firstWhere((element) => element.id == widget.productId).id;
@@ -394,13 +411,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                               context
                                                   .read<ProductProvider>()
                                                   .deletePriceProductBySupplierId(
-                                                      user,
-                                                      widget.productId,
-                                                      context
-                                                              .read<
-                                                                  ProductProvider>()
-                                                              .suppliersId[i]
-                                                          ['supplierId']);
+                                                  user,
+                                                  widget.productId,
+                                                  context
+                                                      .read<
+                                                      ProductProvider>()
+                                                      .suppliersId[i]
+                                                  ['supplierId']);
                                               Get.back();
                                               List<Map<String, dynamic>> list =
                                                   context
@@ -427,14 +444,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           ),
                         const SizedBox(height: 10),
                         if (context
-                                    .watch<ProductProvider>()
-                                    .suppliersId
-                                    .length <
-                                context
-                                    .watch<SupplierProvider>()
-                                    .suppliers
-                                    .length &&
-                            context.watch<ProductProvider>().isAddingPrice ==
+                            .watch<ProductProvider>()
+                            .suppliersId
+                            .length <
+                            context
+                                .watch<SupplierProvider>()
+                                .suppliers
+                                .length &&
+                            context
+                                .watch<ProductProvider>()
+                                .isAddingPrice ==
                                 false)
                           Row(
                             children: [
@@ -446,20 +465,22 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                     ...context
                                         .watch<SupplierProvider>()
                                         .suppliers
-                                        .where((element) => !context
-                                            .read<ProductProvider>()
-                                            .suppliersId
-                                            .map((e) => e['supplierId'])
-                                            .toList()
-                                            .contains(element.id))
-                                        .map((e) => DropdownMenuItem(
-                                              value: e.id,
-                                              child: Text(
-                                                e.name,
-                                                style: TextStyle(
-                                                    color: Colors.black),
-                                              ),
-                                            ))
+                                        .where((element) =>
+                                    !context
+                                        .read<ProductProvider>()
+                                        .suppliersId
+                                        .map((e) => e['supplierId'])
+                                        .toList()
+                                        .contains(element.id))
+                                        .map((e) =>
+                                        DropdownMenuItem(
+                                          value: e.id,
+                                          child: Text(
+                                            e.name,
+                                            style: TextStyle(
+                                                color: Colors.black),
+                                          ),
+                                        ))
                                         .toList()
                                   ],
                                   decoration: const InputDecoration(
@@ -477,7 +498,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                   initialValue: null,
                                   name: 'price',
                                   decoration:
-                                      const InputDecoration(labelText: 'Price'),
+                                  const InputDecoration(labelText: 'Price'),
                                   validator: FormBuilderValidators.compose([
                                     FormBuilderValidators.required(),
                                     FormBuilderValidators.numeric(),
@@ -486,10 +507,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  List<Map<String, dynamic>> list = context
-                                      .read<ProductProvider>()
-                                      .suppliersId;
-                                  List<Map<String, dynamic>> datas = [];
+                                  print('add price for a new supplier');
+
                                   String? supplierId = _formKey
                                       .currentState?.instantValue['supplier'];
                                   String? price = _formKey
@@ -506,32 +525,35 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                       margin: const EdgeInsets.all(16),
                                     );
                                   } else {
-                                    datas.add({
-                                      "supplierId": supplierId,
-                                      "price": double.parse(price),
-                                    });
-                                    print(datas);
+                                    print('add price');
+                                    Map<String, dynamic> last = {
+                                      'prices': [
+                                        {
+                                          "supplierId": _formKey.currentState
+                                              ?.instantValue['supplier'],
+                                          "price": double.parse(_formKey
+                                              .currentState
+                                              ?.instantValue['price']),
+                                        }
+                                      ]
+                                    };
+                                    print(last);
+                                    print(context
+                                        .read<AuthenticationProvider>()
+                                        .user!);
                                     context
                                         .read<ProductProvider>()
                                         .updateProduct(
-                                            {
-                                          "prices": datas,
-                                        },
-                                            widget.productId,
-                                            context
-                                                .read<AuthenticationProvider>()
-                                                .user!);
-                                    print(datas);
-                                    datas.forEach((element) {
-                                      element['isEditing'] = false;
-                                    });
+                                        last,
+                                        widget.productId,
+                                        context
+                                            .read<AuthenticationProvider>()
+                                            .user!);
+
+                                    /*_formKey.currentState?.reset();*/
                                     context
                                         .read<ProductProvider>()
-                                        .setSuppliersId(datas);
-                                    _formKey.currentState?.reset();
-                                    context
-                                        .read<ProductProvider>()
-                                        .setIsAddingPrice(false);
+                                        .getProductById(context.read<AuthenticationProvider>().user!, widget.productId);
                                   }
                                 },
                                 icon: Icon(Icons.save),
@@ -540,6 +562,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           ),
                       ],
                     );
+                  }else{
+                    return Container();
+                  }
                   },
                 ),
 

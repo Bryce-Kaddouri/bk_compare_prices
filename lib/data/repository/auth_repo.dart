@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../datasource/exception.dart';
 
-class AuthRepo{
+class AuthRepo {
   final FirebaseAuth _firebaseAuth;
 
   AuthRepo(this._firebaseAuth);
@@ -24,7 +24,6 @@ class AuthRepo{
           email: email, password: password);
       await _firebaseAuth.currentUser!.updateDisplayName(name);
       return _firebaseAuth.currentUser;
-
     } on FirebaseAuthException catch (e) {
       HandleException.handleException(e.code, message: e.message);
     }

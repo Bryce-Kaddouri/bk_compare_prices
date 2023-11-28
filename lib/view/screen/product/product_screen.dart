@@ -58,6 +58,9 @@ class _ProductScreenState extends State<ProductScreen> {
                     margin: const EdgeInsets.all(8.0),
                     child: InkWell(
                       onTap: () {
+                        context.read<ProductProvider>().setSelectedProduct(
+                            productList[index],
+                            );
                         Navigator.push(
                           context,
                           MaterialPageRoute(

@@ -74,6 +74,22 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  ProductModel? _selectedProduct;
+  ProductModel? get selectedProduct => _selectedProduct;
+
+  void setSelectedProduct(ProductModel? selectedProduct) {
+    _selectedProduct = selectedProduct;
+    notifyListeners();
+  }
+
+  void resetSelectedProduct() {
+    _selectedProduct = null;
+    notifyListeners();
+  }
+
+
+
+
   void getProducts(User? user) async {
     setLoading(true);
     try {
@@ -90,15 +106,39 @@ class ProductProvider with ChangeNotifier {
       });
       print("getproducts");
       print(productModels);
-
       setProducts(productModels);
-      /* List<SupplierModel> supplierModels = [];
-      suppliers?.forEach((element) {
-        print(element);
-        supplierModels.add(SupplierModel.fromJson(element));
-      });
-      print("getSuppliers");
-      setSuppliers(supplierModels);*/
+
+    } on FirebaseException catch (e) {
+      HandleException.handleException(e.code, message: e.message);
+    }
+    setLoading(false);
+  }
+
+  void getProductById(User? user, String productId) async {
+    setLoading(true);
+    try {
+      Map<String, dynamic>? product =
+          await _firestoreRepo.getProductById(user!, productId);
+      Timestamp createdAt = product!["createdAt"];
+      Timestamp updatedAt = product["updatedAt"];
+      product["createdAt"] = createdAt.toDate();
+      product["updatedAt"] = updatedAt.toDate();
+      print("getProductById");
+      print(product);
+      ProductModel productModel = ProductModel.fromJson(product);
+
+      List<Map<String, dynamic>> lst = [];
+
+      for (int i = 0; i < productModel.prices.length; i++) {
+        String supplierId = productModel.prices[i].supplierId;
+        double price = productModel.prices[i].price;
+        lst.add({"supplierId": supplierId, "price": price, "isEditing": false});
+
+      }
+      print(productModel);
+      setSelectedProduct(selectedProduct);
+      setSuppliersId(lst);
+      notifyListeners();
     } on FirebaseException catch (e) {
       HandleException.handleException(e.code, message: e.message);
     }
@@ -141,6 +181,7 @@ class ProductProvider with ChangeNotifier {
     setLoading(true);
     try {
       product["updatedAt"] = DateTime.now();
+
       print(product["prices"]);
 
       _firestoreRepo.updateProduct(product, user, productId);
