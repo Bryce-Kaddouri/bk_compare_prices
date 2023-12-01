@@ -316,4 +316,29 @@ class FirestoreRepo {
   Stream<DocumentSnapshot<Map<String, dynamic>>> streamProductById(String productId, User user) {
     return _firebaseFirestore.collection('users').doc(user.uid).collection('products').doc(productId).snapshots();
   }
+
+  Future<List<Map<String, dynamic>>> getHistoryByProductId(String productId, User user) async {
+    List<Map<String, dynamic>> history = [];
+    var datas = await _firebaseFirestore.collection("users").doc(user.uid).collection("priceHistory").doc(productId).collection("prices").get();
+    datas.docs.forEach((element) {
+      Map<String, dynamic> data = element.data();
+      data["id"] = element.id;
+      history.add(data);
+    });
+    return history;
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamHistoryByProductId(String productId, User user) {
+    return _firebaseFirestore.collection('users').doc(user.uid).collection('priceHistory').doc(productId).collection('prices').snapshots();
+  }
+
+  String getProductIdByName(String productName, User user) {
+    String productId = "";
+    _firebaseFirestore.collection("users").doc(user.uid).collection("products").where("name", isEqualTo: productName).get().then((value) {
+      for (var element in value.docs) {
+        productId = element.id;
+      }
+    });
+    return productId;
+  }
 }

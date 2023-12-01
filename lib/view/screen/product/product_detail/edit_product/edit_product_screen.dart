@@ -386,7 +386,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                             ),
                           ),
                         const SizedBox(height: 10),
-                        if (product.prices.length < context.watch<SupplierProvider>().suppliers.length && product.isAddingPrice == false)
+                        if (product.prices.length < context.watch<SupplierProvider>().suppliers.length)
                           Row(
                             children: [
                               Expanded(

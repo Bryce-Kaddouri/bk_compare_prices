@@ -7,9 +7,7 @@ class ProductModel {
   DateTime createdAt;
   DateTime updatedAt;
   List<PriceModel> prices;
-  bool isEditingProductName = false;
-  bool isEditingProductPhoto = false;
-  bool isAddingPrice = false;
+  List<PriceModelHistory>? pricesHistory = [];
 
   ProductModel({
     required this.id,
@@ -18,9 +16,7 @@ class ProductModel {
     required this.createdAt,
     required this.updatedAt,
     required this.prices,
-    this.isEditingProductName = false,
-    this.isEditingProductPhoto = false,
-    this.isAddingPrice = false,
+    this.pricesHistory,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
@@ -50,6 +46,11 @@ class ProductModel {
         "updatedAt": updatedAt.toIso8601String(),
         "prices": List<dynamic>.from(prices.map((x) => x.toJson())),
       };
+
+  // method to set PriceHistory
+  void setPriceHistory(List<PriceModelHistory> pricesHistory) {
+    this.pricesHistory = pricesHistory;
+  }
 }
 
 class PriceModel {
@@ -78,4 +79,31 @@ class PriceModel {
         "supplierId": supplierId,
         "price": price,
       };
+}
+
+class PriceModelHistory {
+  String productId;
+  String supplierId;
+  double price;
+  DateTime createdAt;
+
+  PriceModelHistory({
+    required this.productId,
+    required this.supplierId,
+    required this.price,
+    required this.createdAt,
+  });
+
+  factory PriceModelHistory.fromJson(Map<String, dynamic> json) => PriceModelHistory(
+        productId: json["product_id"],
+        supplierId: json["supplier_id"],
+        price: json["price"],
+        createdAt: DateTime.parse(json["created_at"].toDate().toString()),
+      );
+
+  /* Map<String, dynamic> toJson() => {
+        "supplierId": supplierId,
+        "price": price,
+        "createdAt": createdAt.toIso8601String(),
+      };*/
 }

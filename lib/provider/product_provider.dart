@@ -101,21 +101,31 @@ class ProductProvider with ChangeNotifier {
     return _firestoreRepo.streamProductById(productId, user!);
   }
 
-  void getProducts(User? user) async {
+  Future<void> getProducts(User? user) async {
     setLoading(true);
     try {
       List<Map<String, dynamic>>? products = await _firestoreRepo.getProducts(user!);
       List<ProductModel> productModels = [];
-      products?.forEach((element) {
+      products?.forEach((element) async {
         Timestamp createdAt = element["createdAt"];
         Timestamp updatedAt = element["updatedAt"];
         element["createdAt"] = createdAt.toDate();
         element["updatedAt"] = updatedAt.toDate();
         print(element);
-        productModels.add(ProductModel.fromJson(element));
+        ProductModel model = ProductModel.fromJson(element);
+        List<PriceModelHistory> pricesHistory = [];
+
+        var datas = await getHistoryByProductId(
+          element["id"],
+          user,
+        );
+        for (var history in datas) {
+          pricesHistory.add(history);
+        }
+        model.setPriceHistory(pricesHistory);
+        productModels.add(model);
       });
-      print("getproducts");
-      print(productModels);
+
       setProducts(productModels);
     } on FirebaseException catch (e) {
       HandleException.handleException(e.code, message: e.message);
@@ -256,5 +266,28 @@ class ProductProvider with ChangeNotifier {
       HandleException.handleException(e.code, message: e.message);
     }
     setLoading(false);
+  }
+
+  // method to get product History by product id
+  Future<List<PriceModelHistory>> getHistoryByProductId(String productId, User? user) async {
+    List<Map<String, dynamic>> datas = await _firestoreRepo.getHistoryByProductId(productId, user!);
+    List<PriceModelHistory> priceModelHistory = [];
+    for (var element in datas) {
+      print('loop hostory n provider');
+      print(element);
+      priceModelHistory.add(PriceModelHistory.fromJson(element));
+    }
+
+    print("priceModelHistory");
+    print(priceModelHistory);
+    return priceModelHistory;
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamHistoryByProductId(String productId, User? user) {
+    return _firestoreRepo.streamHistoryByProductId(productId, user!);
+  }
+
+  String getProductIdByProductName(String productName, User user) {
+    return _firestoreRepo.getProductIdByName(productName, user);
   }
 }
