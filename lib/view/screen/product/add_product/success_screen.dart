@@ -10,8 +10,7 @@ import '../../../../provider/auth_provider.dart';
 class SuccessScreen extends StatelessWidget {
   String productId;
   Function? onDone;
-  SuccessScreen({Key? key, required this.productId, this.onDone})
-      : super(key: key);
+  SuccessScreen({Key? key, required this.productId, this.onDone}) : super(key: key);
 
   final StorageRepo _storageRepo = StorageRepo(FirebaseStorage.instance);
 
@@ -22,9 +21,7 @@ class SuccessScreen extends StatelessWidget {
         child: Column(
           children: [
             StreamBuilder(
-              stream: _storageRepo.uploadImage(
-                  "users/${context.read<AuthenticationProvider>().user!.uid}/products/${productId}.png",
-                  context.read<ProductProvider>().imageFile!),
+              stream: _storageRepo.uploadImage("users/${context.read<AuthenticationProvider>().user!.uid}/products/${productId}.png", context.read<ProductProvider>().imageFile!),
               builder: (context, snapshot) {
                 switch (snapshot.connectionState) {
                   case ConnectionState.waiting:
@@ -36,8 +33,7 @@ class SuccessScreen extends StatelessWidget {
 
                     switch (snapshot.data!.state) {
                       case TaskState.running:
-                        double progress = snapshot.data!.bytesTransferred /
-                            snapshot.data!.totalBytes;
+                        double progress = snapshot.data!.bytesTransferred / snapshot.data!.totalBytes;
                         print(progress);
                         return Container(
                           height: MediaQuery.of(context).size.height,
@@ -71,6 +67,7 @@ class SuccessScreen extends StatelessWidget {
                               },
                               productId,
                               context.read<AuthenticationProvider>().user,
+                              false,
                             );
                             context.read<ProductProvider>().setImageFile(null);
                           },

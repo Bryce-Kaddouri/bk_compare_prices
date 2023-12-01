@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:compare_prices/data/model/product_model.dart';
 import 'package:compare_prices/data/repository/firestore_repo.dart';
@@ -79,6 +81,14 @@ class ProductProvider with ChangeNotifier {
 
   void setSelectedProduct(ProductModel? selectedProduct) {
     _selectedProduct = selectedProduct;
+    List<PriceModel> prices = selectedProduct!.prices;
+    List<Map<String, dynamic>> suppliersId = [];
+    for (int i = 0; i < prices.length; i++) {
+      String supplierId = prices[i].supplierId;
+      double price = prices[i].price;
+      suppliersId.add({"supplierId": supplierId, "price": price, "isEditing": false});
+    }
+    setSuppliersId(suppliersId);
     notifyListeners();
   }
 
@@ -87,14 +97,14 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
-
+  Stream<DocumentSnapshot<Map<String, dynamic>>> streamProductById(String productId, User? user) {
+    return _firestoreRepo.streamProductById(productId, user!);
+  }
 
   void getProducts(User? user) async {
     setLoading(true);
     try {
-      List<Map<String, dynamic>>? products =
-          await _firestoreRepo.getProducts(user!);
+      List<Map<String, dynamic>>? products = await _firestoreRepo.getProducts(user!);
       List<ProductModel> productModels = [];
       products?.forEach((element) {
         Timestamp createdAt = element["createdAt"];
@@ -107,7 +117,6 @@ class ProductProvider with ChangeNotifier {
       print("getproducts");
       print(productModels);
       setProducts(productModels);
-
     } on FirebaseException catch (e) {
       HandleException.handleException(e.code, message: e.message);
     }
@@ -117,8 +126,7 @@ class ProductProvider with ChangeNotifier {
   void getProductById(User? user, String productId) async {
     setLoading(true);
     try {
-      Map<String, dynamic>? product =
-          await _firestoreRepo.getProductById(user!, productId);
+      Map<String, dynamic>? product = await _firestoreRepo.getProductById(user!, productId);
       Timestamp createdAt = product!["createdAt"];
       Timestamp updatedAt = product["updatedAt"];
       product["createdAt"] = createdAt.toDate();
@@ -133,7 +141,6 @@ class ProductProvider with ChangeNotifier {
         String supplierId = productModel.prices[i].supplierId;
         double price = productModel.prices[i].price;
         lst.add({"supplierId": supplierId, "price": price, "isEditing": false});
-
       }
       print(productModel);
       setSelectedProduct(selectedProduct);
@@ -150,8 +157,7 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> createProduct(String productName, String photoUrl,
-      List<Map<String, dynamic>> prices, User? user) async {
+  Future<String?> createProduct(String productName, String photoUrl, List<Map<String, dynamic>> prices, User? user) async {
     print("createSupplier");
     print('user.uid');
     print(user!.uid);
@@ -172,8 +178,7 @@ class ProductProvider with ChangeNotifier {
     setLoading(false);
   }
 
-  void updateProduct(
-      Map<String, dynamic> product, String productId, User? user) {
+  void updateProduct(Map<String, dynamic> product, String productId, User? user, bool addHistory) {
     if (user!.uid == null) {
       throw Exception("Invalid user");
     }
@@ -184,7 +189,7 @@ class ProductProvider with ChangeNotifier {
 
       print(product["prices"]);
 
-      _firestoreRepo.updateProduct(product, user, productId);
+      _firestoreRepo.updateProduct(product, user, productId, addHistory);
       print("updateSupplier");
     } on FirebaseException catch (e) {
       HandleException.handleException(e.code, message: e.message);
@@ -204,8 +209,7 @@ class ProductProvider with ChangeNotifier {
               title: const Text('Photo Library'),
               onTap: () async {
                 Get.back();
-                XFile? imageFile =
-                    await _picker.pickImage(source: ImageSource.gallery);
+                XFile? imageFile = await _picker.pickImage(source: ImageSource.gallery);
                 setImageFile(imageFile);
               },
             ),
@@ -215,8 +219,7 @@ class ProductProvider with ChangeNotifier {
                 title: const Text('Camera'),
                 onTap: () async {
                   Get.back();
-                  XFile? imageFile =
-                      await _picker.pickImage(source: ImageSource.camera);
+                  XFile? imageFile = await _picker.pickImage(source: ImageSource.camera);
                   setImageFile(imageFile);
                 },
               ),
@@ -234,23 +237,20 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void removeSupplierId(
-      Map<String, dynamic> last, List<Map<String, dynamic>> suppliersData) {
+  void removeSupplierId(Map<String, dynamic> last, List<Map<String, dynamic>> suppliersData) {
     suppliersData.remove(last);
     setSuppliersId(suppliersData);
     notifyListeners();
   }
 
-  void deletePriceProductBySupplierId(
-      User? user, String productId, String supplierId) {
+  void deletePriceProductBySupplierId(User? user, String productId, PriceModel priceModel) {
     if (user!.uid == null) {
       throw Exception("Invalid user");
     }
     print("deletePriceProductBySupplierId");
     setLoading(true);
     try {
-      _firestoreRepo.deletePriceProductBySupplierId(
-          user, supplierId, productId);
+      _firestoreRepo.deletePriceProduct(user, productId, priceModel.toJson());
       print("deletePriceProductBySupplierId");
     } on FirebaseException catch (e) {
       HandleException.handleException(e.code, message: e.message);

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ProductModel {
   String id;
   String name;
@@ -5,6 +7,9 @@ class ProductModel {
   DateTime createdAt;
   DateTime updatedAt;
   List<PriceModel> prices;
+  bool isEditingProductName = false;
+  bool isEditingProductPhoto = false;
+  bool isAddingPrice = false;
 
   ProductModel({
     required this.id,
@@ -13,6 +18,9 @@ class ProductModel {
     required this.createdAt,
     required this.updatedAt,
     required this.prices,
+    this.isEditingProductName = false,
+    this.isEditingProductPhoto = false,
+    this.isAddingPrice = false,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
@@ -21,8 +29,17 @@ class ProductModel {
         photoUrl: json["photoUrl"],
         createdAt: json["createdAt"],
         updatedAt: json["updatedAt"],
-        prices: List<PriceModel>.from(
-            json["prices"].map((x) => PriceModel.fromJson(x))),
+        prices: List<PriceModel>.from(json["prices"].map((x) => PriceModel.fromJson(x))),
+      );
+
+  factory ProductModel.fromDocument(DocumentSnapshot json) => ProductModel(
+        id: json.id,
+        name: json["name"],
+        photoUrl: json["photoUrl"],
+        // timestamp to date
+        createdAt: DateTime.parse(json["createdAt"].toDate().toString()),
+        updatedAt: DateTime.parse(json["updatedAt"].toDate().toString()),
+        prices: List<PriceModel>.from(json["prices"].map((x) => PriceModel.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -38,16 +55,24 @@ class ProductModel {
 class PriceModel {
   String supplierId;
   double price;
+  bool isEditing = false;
 
   PriceModel({
     required this.supplierId,
     required this.price,
+    this.isEditing = false,
   });
 
   factory PriceModel.fromJson(Map<String, dynamic> json) => PriceModel(
         supplierId: json["supplierId"],
         price: json["price"],
+        isEditing: false,
       );
+
+  // method to set isEditing
+  void setIsEditing(bool isEditing) {
+    this.isEditing = isEditing;
+  }
 
   Map<String, dynamic> toJson() => {
         "supplierId": supplierId,

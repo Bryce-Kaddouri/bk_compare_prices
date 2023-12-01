@@ -13,11 +13,7 @@ class FirestoreRepo {
       throw Exception("Invalid user");
     } else {
       try {
-        DocumentReference ref = await _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("suppliers")
-            .add(datas);
+        DocumentReference ref = await _firebaseFirestore.collection("users").doc(user.uid).collection("suppliers").add(datas);
         print("createSupplier");
         return ref.id;
       } on FirebaseException catch (e) {
@@ -26,18 +22,12 @@ class FirestoreRepo {
     }
   }
 
-  void updateSupplier(
-      Map<String, dynamic> datas, User user, String supplierId) {
+  void updateSupplier(Map<String, dynamic> datas, User user, String supplierId) {
     if (user.uid == null) {
       throw Exception("Invalid user");
     } else {
       try {
-        _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("suppliers")
-            .doc(supplierId)
-            .update(datas);
+        _firebaseFirestore.collection("users").doc(user.uid).collection("suppliers").doc(supplierId).update(datas);
         print("updateSupplier");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
@@ -50,12 +40,7 @@ class FirestoreRepo {
       throw Exception("Invalid user");
     } else {
       try {
-        _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("suppliers")
-            .doc(supplierId)
-            .delete();
+        _firebaseFirestore.collection("users").doc(user.uid).collection("suppliers").doc(supplierId).delete();
         print("deleteSupplier");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
@@ -68,12 +53,7 @@ class FirestoreRepo {
       throw Exception("Invalid user");
     } else {
       try {
-        QuerySnapshot<Map<String, dynamic>> querySnapshot =
-            await _firebaseFirestore
-                .collection("users")
-                .doc(user.uid)
-                .collection("suppliers")
-                .get();
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firebaseFirestore.collection("users").doc(user.uid).collection("suppliers").get();
         print("getSuppliers");
         return querySnapshot.docs.map((e) {
           Map<String, dynamic> data = e.data();
@@ -93,11 +73,7 @@ class FirestoreRepo {
       throw Exception("Invalid user");
     } else {
       try {
-        DocumentReference ref = await _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("products")
-            .add(datas);
+        DocumentReference ref = await _firebaseFirestore.collection("users").doc(user.uid).collection("products").add(datas);
         List<Map<String, dynamic>> prices = datas["prices"];
         print("createProduct");
         print(prices);
@@ -117,8 +93,7 @@ class FirestoreRepo {
     }
   }
 
-  void updateProduct(
-      Map<String, dynamic> datas, User user, String productId) async {
+  void updateProduct(Map<String, dynamic> datas, User user, String productId, bool addHistory) async {
     print("updateProduct repo");
     if (user.uid == null) {
       throw Exception("Invalid user");
@@ -127,54 +102,40 @@ class FirestoreRepo {
         if (datas["prices"] != null) {
           print("updateProduct repo prices");
           print(datas["prices"]);
-          DocumentSnapshot oldProduct = await _firebaseFirestore
-              .collection("users")
-              .doc(user.uid)
-              .collection("products")
-              .doc(productId)
-              .get();
-          List<dynamic> oldPrices =
-          oldProduct.get('prices');
+          DocumentSnapshot oldProduct = await _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).get();
+          List<dynamic> oldPrices = oldProduct.get('prices');
           print("oldPrices");
           print(oldPrices);
           List<Map<String, dynamic>> newPrices = datas["prices"];
-          for(int i =0; i<newPrices.length; i++){
-            addPriceHistory(user, productId, newPrices[i]["supplierId"], newPrices[i]["price"]);
+
+          for (int i = 0; i < newPrices.length; i++) {
+            if (addHistory) {
+              addPriceHistory(user, productId, newPrices[i]["supplierId"], newPrices[i]["price"]);
+            }
             print('oldSupplierId = ${oldPrices[i]["supplierId"]}');
             print('newSupplierId = ${newPrices[i]["supplierId"]}');
             var old = oldPrices.firstWhere((element) => element["supplierId"] == newPrices[i]["supplierId"], orElse: () => null);
             print(old);
 
-            if(old != null){
+            if (old != null) {
               int index = oldPrices.indexOf(old);
               print(old);
               print(old["supplierId"] == newPrices[i]["supplierId"]);
-              if(old["supplierId"] == newPrices[i]["supplierId"]){
+              if (old["supplierId"] == newPrices[i]["supplierId"]) {
                 oldPrices.elementAt(index)["price"] = newPrices[i]["price"];
               }
-            }else{
-
-          oldPrices.add(newPrices[i]);
-
+            } else {
+              oldPrices.add(newPrices[i]);
             }
           }
-
 
           print("test");
           print(oldPrices);
           datas["prices"] = oldPrices;
 
-
-
           // merge old prices with new prices
-
         }
-       _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("products")
-            .doc(productId)
-            .update(datas);
+        _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).update(datas);
 
         print("updateProduct");
       } on FirebaseException catch (e) {
@@ -188,13 +149,23 @@ class FirestoreRepo {
       throw Exception("Invalid user");
     } else {
       try {
-        _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("products")
-            .doc(productId)
-            .delete();
+        _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).delete();
         print("deleteProduct");
+      } on FirebaseException catch (e) {
+        HandleException.handleException(e.code, message: e.message);
+      }
+    }
+  }
+
+  void deletePriceProduct(User user, String productId, Map<String, dynamic> price) {
+    if (user.uid == null) {
+      throw Exception("Invalid user");
+    } else {
+      try {
+        _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).update({
+          "prices": FieldValue.arrayRemove([price])
+        });
+        print("deletePriceProduct");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
       }
@@ -206,12 +177,7 @@ class FirestoreRepo {
       throw Exception("Invalid user");
     } else {
       try {
-        QuerySnapshot<Map<String, dynamic>> querySnapshot =
-            await _firebaseFirestore
-                .collection("users")
-                .doc(user.uid)
-                .collection("products")
-                .get();
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firebaseFirestore.collection("users").doc(user.uid).collection("products").get();
         print("getProducts");
         return querySnapshot.docs.map((e) {
           Map<String, dynamic> data = e.data();
@@ -225,19 +191,12 @@ class FirestoreRepo {
     }
   }
 
-  void addPriceHistory(
-      User user, String productId, String supplierId, double price) {
+  void addPriceHistory(User user, String productId, String supplierId, double price) {
     if (user.uid == null) {
       throw Exception("Invalid user");
     } else {
       try {
-        _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("priceHistory")
-            .doc(productId)
-            .collection("prices")
-            .add({
+        _firebaseFirestore.collection("users").doc(user.uid).collection("priceHistory").doc(productId).collection("prices").add({
           "supplier_id": supplierId,
           "product_id": productId,
           "price": price,
@@ -273,19 +232,12 @@ class FirestoreRepo {
     }
   }*/
 
-  Future<List<Map<String, dynamic>>?> getPriceHistory(
-      User user, String productId) async {
+  Future<List<Map<String, dynamic>>?> getPriceHistory(User user, String productId) async {
     if (user.uid == null) {
       throw Exception("Invalid user");
     } else {
       try {
-        DocumentSnapshot<Map<String, dynamic>> querySnapshot =
-            await _firebaseFirestore
-                .collection("users")
-                .doc(user.uid)
-                .collection("price_history")
-                .doc(productId)
-                .get();
+        DocumentSnapshot<Map<String, dynamic>> querySnapshot = await _firebaseFirestore.collection("users").doc(user.uid).collection("price_history").doc(productId).get();
         print("getPriceHistory");
         return querySnapshot.data()!["price_history"];
       } on FirebaseException catch (e) {
@@ -294,19 +246,12 @@ class FirestoreRepo {
     }
   }
 
-  Future<List<Map<String, dynamic>>?> getSupplierPriceHistory(
-      User user, String supplierId) async {
+  Future<List<Map<String, dynamic>>?> getSupplierPriceHistory(User user, String supplierId) async {
     if (user.uid == null) {
       throw Exception("Invalid user");
     } else {
       try {
-        QuerySnapshot<Map<String, dynamic>> querySnapshot =
-            await _firebaseFirestore
-                .collection("users")
-                .doc(user.uid)
-                .collection("price_history")
-                .where("supplier_id", isEqualTo: supplierId)
-                .get();
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firebaseFirestore.collection("users").doc(user.uid).collection("price_history").where("supplier_id", isEqualTo: supplierId).get();
         print("getSupplierPriceHistory");
         return querySnapshot.docs.map((e) {
           Map<String, dynamic> data = e.data();
@@ -320,59 +265,44 @@ class FirestoreRepo {
     }
   }
 
-  void deletePriceProductBySupplierId(
-      User user, String supplierId, String productId) {
+  /* void deletePriceProductBySupplierId(User user, String supplierId, String productId) {
     if (user.uid == null) {
       throw Exception("Invalid user");
     } else {
       try {
-        _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("products")
-            .doc(productId)
-            .get()
-            .then((value) {
+        _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).get().then((value) {
           String prices = value.get('prices').toString();
-          List<Map<String, dynamic>> pricesMap =
-              List<Map<String, dynamic>>.from(value.get('prices'));
+          List<Map<String, dynamic>> pricesMap = List<Map<String, dynamic>>.from(value.get('prices'));
           print("deletePriceProductBySupplierId");
           print(prices.runtimeType);
           print(prices);
           print(pricesMap.runtimeType);
           print(pricesMap);
-          pricesMap
-              .removeWhere((element) => element["supplierId"] == supplierId);
+          pricesMap.removeWhere((element) => element["supplierId"] == supplierId);
           updateProduct({"prices": pricesMap}, user, productId);
         });
 
-        /*.where("supplier_id", isEqualTo: supplierId)
+        */ /*.where("supplier_id", isEqualTo: supplierId)
             .where("product_id", isEqualTo: productId)
             .get()
             .then((value) {
           value.docs.forEach((element) {
             element.reference.delete();
           });
-        });*/
+        });*/ /*
         print("deletePriceProductBySupplierId");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
       }
     }
-  }
+  }*/
 
   getProductById(User user, String productId) {
     if (user.uid == null) {
       throw Exception("Invalid user");
     } else {
       try {
-        _firebaseFirestore
-            .collection("users")
-            .doc(user.uid)
-            .collection("products")
-            .doc(productId)
-            .get()
-            .then((value) {
+        _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).get().then((value) {
           print("getProductById");
           print(value.data());
           return value.data();
@@ -381,5 +311,9 @@ class FirestoreRepo {
         HandleException.handleException(e.code, message: e.message);
       }
     }
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> streamProductById(String productId, User user) {
+    return _firebaseFirestore.collection('users').doc(user.uid).collection('products').doc(productId).snapshots();
   }
 }
