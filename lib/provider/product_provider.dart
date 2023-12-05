@@ -284,7 +284,16 @@ class ProductProvider with ChangeNotifier {
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> streamHistoryByProductId(String productId, User? user) {
-    return _firestoreRepo.streamHistoryByProductId(productId, user!);
+    if (user == null) {
+      return Stream.empty();
+    } else {
+      print('stream history');
+      print(productId);
+      print(user.uid);
+      return _firestoreRepo.streamHistoryByProductId(productId, user);
+    }
+
+    /*return _firestoreRepo.streamHistoryByProductId(productId, user!);*/
   }
 
   String getProductIdByProductName(String productName, User user) {

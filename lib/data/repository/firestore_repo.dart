@@ -329,6 +329,7 @@ class FirestoreRepo {
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> streamHistoryByProductId(String productId, User user) {
+    print('firestore stram history');
     return _firebaseFirestore.collection('users').doc(user.uid).collection('priceHistory').doc(productId).collection('prices').snapshots();
   }
 

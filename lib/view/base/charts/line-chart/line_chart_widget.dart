@@ -1,13 +1,8 @@
-import 'package:compare_prices/provider/product_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../../../../provider/auth_provider.dart';
 
 class _LineChart extends StatefulWidget {
-  String productName;
-  _LineChart({required this.isShowingMainData, required this.productName});
+  _LineChart({required this.isShowingMainData});
 
   final bool isShowingMainData;
 
@@ -301,8 +296,7 @@ class _LineChartState extends State<_LineChart> {
 }
 
 class LineChartSample1 extends StatefulWidget {
-  String productName;
-  LineChartSample1({super.key, required this.productName});
+  LineChartSample1({super.key});
 
   @override
   State<StatefulWidget> createState() => LineChartSample1State();
@@ -316,64 +310,74 @@ class LineChartSample1State extends State<LineChartSample1> {
     super.initState();
     print("LineChartSample1State");
     isShowingMainData = true;
+/*
+    String? productId = context.read<ProductProvider>().getProductIdByProductName(widget.productName, context.read<AuthenticationProvider>().user!);
+*/
+/*    User? user = context.read<AuthenticationProvider>().user;
+
+    print("productId");
+    print(productId);
+    print("user");
+    print(user);*/
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
+    /*return
+      StreamBuilder(
       stream: context.read<ProductProvider>().streamHistoryByProductId(context.read<ProductProvider>().getProductIdByProductName(widget.productName, context.read<AuthenticationProvider>().user!), context.read<AuthenticationProvider>().user!),
       builder: (context, snapshot) {
         print("snapshot");
-        print(snapshot.data);
-        return AspectRatio(
-          aspectRatio: 1.23,
-          child: Stack(
+        print(snapshot.data);*/
+    return AspectRatio(
+      aspectRatio: 1.23,
+      child: Stack(
+        children: <Widget>[
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  const SizedBox(
-                    height: 37,
-                  ),
-                  const Text(
-                    'Monthly Sales',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 37,
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16, left: 6),
-                      child: _LineChart(isShowingMainData: isShowingMainData, productName: widget.productName),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                ],
+              const SizedBox(
+                height: 37,
               ),
-              IconButton(
-                icon: Icon(
-                  Icons.refresh,
-                  color: Colors.white.withOpacity(isShowingMainData ? 1.0 : 0.5),
+              const Text(
+                'Monthly Sales',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
                 ),
-                onPressed: () {
-                  setState(() {
-                    isShowingMainData = !isShowingMainData;
-                  });
-                },
-              )
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(
+                height: 37,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16, left: 6),
+                  child: _LineChart(isShowingMainData: isShowingMainData),
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
             ],
           ),
-        );
-      },
+          IconButton(
+            icon: Icon(
+              Icons.refresh,
+              color: Colors.white.withOpacity(isShowingMainData ? 1.0 : 0.5),
+            ),
+            onPressed: () {
+              setState(() {
+                isShowingMainData = !isShowingMainData;
+              });
+            },
+          )
+        ],
+      ),
+      /* );
+      },*/
     );
   }
 }
