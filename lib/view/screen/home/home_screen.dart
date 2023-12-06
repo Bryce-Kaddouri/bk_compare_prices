@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:compare_prices/data/model/product_model.dart';
 import 'package:compare_prices/data/model/supplier_model.dart';
 import 'package:compare_prices/provider/product_provider.dart';
@@ -146,6 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       List<Map<String, dynamic>> datasBySupplier = [];
                       List suppliers = context.watch<SupplierProvider>().suppliers;
                       List lst = [];
+                      double minPrice = 0;
+                      double maxPrice = 0;
                       for (SupplierModel supp in suppliers) {
                         lst.add({'supplierModel': supp.toJson(), 'priceHistory': []});
                       }
@@ -154,8 +158,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           print('-' * 30);
                           print(test);
                         }
+                        int nb = 0;
                         for (var doc in snap.data!.docs) {
                           String supplierId = doc.get('supplier_id');
+                          double price = doc.get('price');
+                          print(supplierId);
+                          print(price);
+                          if (price > maxPrice) {
+                            maxPrice = price;
+                          }
+                          if (nb == 0) {
+                            minPrice = price;
+                          } else {
+                            if (price < minPrice) {
+                              minPrice = price;
+                            }
+                          }
+                          nb++;
                           lst.firstWhere((element) => element['supplierModel']['id'] == supplierId)['priceHistory'].add(doc.data());
                           print(supplierId);
                         }
@@ -164,107 +183,154 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       print(lst);
                       print('*' * 30);
+                      print(minPrice);
+                      print(maxPrice);
 
-                      return Container(
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.width,
-                        child: LineChart(
-                          LineChartData(
-                            lineTouchData: LineTouchData(
-                              enabled: true,
-                            ),
-                            gridData: FlGridData(
-                              show: false,
-                            ),
-                            titlesData: FlTitlesData(
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 32,
-                                  interval: 1,
-                                  getTitlesWidget: bottomTitleWidgets,
+                      return Column(
+                        children: [
+                          Container(
+                            height: MediaQuery.of(context).size.height,
+                            width: MediaQuery.of(context).size.width,
+                            child: LineChart(
+                              LineChartData(
+                                lineTouchData: LineTouchData(
+                                  enabled: true,
                                 ),
-                              ),
-                              rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              topTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              leftTitles: AxisTitles(
-                                sideTitles: leftTitles(),
-                              ),
-                            ),
-                            borderData: FlBorderData(
-                              show: true,
-                              border: Border(
-                                bottom: BorderSide(color: AppColors.primary.withOpacity(0.2), width: 4),
-                                left: const BorderSide(color: Colors.transparent),
-                                right: const BorderSide(color: Colors.transparent),
-                                top: const BorderSide(color: Colors.transparent),
-                              ),
-                            ),
-                            lineBarsData: [
-                              // data for the suppliers
-                              LineChartBarData(
-                                isCurved: true,
-                                color: AppColors.contentColorGreen,
-                                barWidth: 8,
-                                isStrokeCapRound: true,
-                                dotData: const FlDotData(show: false),
-                                belowBarData: BarAreaData(show: false),
-                                spots: const [
-                                  FlSpot(1, 1),
-                                  FlSpot(3, 1.5),
-                                  FlSpot(5, 1.4),
-                                  FlSpot(7, 3.4),
-                                  FlSpot(10, 2),
-                                  FlSpot(12, 2.2),
-                                  FlSpot(13, 1.8),
-                                ],
-                              ),
-                              LineChartBarData(
-                                isCurved: true,
-                                color: AppColors.contentColorPink,
-                                barWidth: 8,
-                                isStrokeCapRound: true,
-                                dotData: const FlDotData(show: false),
-                                belowBarData: BarAreaData(
+                                gridData: FlGridData(
                                   show: false,
-                                  color: AppColors.contentColorPink.withOpacity(0),
                                 ),
-                                spots: const [
-                                  FlSpot(1, 1),
-                                  FlSpot(3, 2.8),
-                                  FlSpot(7, 1.2),
-                                  FlSpot(10, 2.8),
-                                  FlSpot(12, 2.6),
-                                  FlSpot(13, 3.9),
-                                ],
+                                titlesData: FlTitlesData(
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 32,
+                                      interval: 500,
+                                      getTitlesWidget: bottomTitleWidgets,
+                                    ),
+                                  ),
+                                  rightTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  topTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  leftTitles: AxisTitles(
+                                    sideTitles: leftTitles(1),
+                                  ),
+                                ),
+                                borderData: FlBorderData(
+                                  show: true,
+                                  border: Border(
+                                    bottom: BorderSide(color: AppColors.primary.withOpacity(0.2), width: 4),
+                                    left: const BorderSide(color: Colors.transparent),
+                                    right: const BorderSide(color: Colors.transparent),
+                                    top: const BorderSide(color: Colors.transparent),
+                                  ),
+                                ),
+                                lineBarsData: List.generate(
+                                  lst.length,
+                                  (index) => LineChartBarData(
+                                    isCurved: true,
+                                    color: Color.fromRGBO(Random().nextInt(255), Random().nextInt(255), Random().nextInt(255), 1),
+                                    barWidth: 8,
+                                    isStrokeCapRound: true,
+                                    dotData: const FlDotData(show: false),
+                                    belowBarData: BarAreaData(show: false),
+                                    spots:
+                                        /*List.generate(lst[index]['priceHistory'].length, (index2) {
+                                      print(lst[index]['priceHistory'][index2]['created_at'].toDate().month.toDouble() + 1);
+                                      return FlSpot(
+                                        Random().nextInt(3).toDouble(),
+                                        lst[index]['priceHistory'][index2]['price'].toDouble(),
+                                      );
+                                    }),*/
+                                        const [
+                                      FlSpot(1, 1),
+                                      FlSpot(3, 1.5),
+                                      FlSpot(5, 1.4),
+                                      FlSpot(7, 3.4),
+                                      FlSpot(10, 2),
+                                      FlSpot(12, 2.2),
+                                      FlSpot(13, 1.8),
+                                    ],
+                                  ),
+                                ),
+                                /*[
+                                  // data for the suppliers
+                                  LineChartBarData(
+                                    isCurved: true,
+                                    color: AppColors.contentColorGreen,
+                                    barWidth: 8,
+                                    isStrokeCapRound: true,
+                                    dotData: const FlDotData(show: false),
+                                    belowBarData: BarAreaData(show: false),
+                                    spots: const [
+                                      FlSpot(1, 1),
+                                      FlSpot(3, 1.5),
+                                      FlSpot(5, 1.4),
+                                      FlSpot(7, 3.4),
+                                      FlSpot(10, 2),
+                                      FlSpot(12, 2.2),
+                                      FlSpot(13, 1.8),
+                                    ],
+                                  ),
+                                  LineChartBarData(
+                                    isCurved: true,
+                                    color: AppColors.contentColorPink,
+                                    barWidth: 8,
+                                    isStrokeCapRound: true,
+                                    dotData: const FlDotData(show: false),
+                                    belowBarData: BarAreaData(
+                                      show: false,
+                                      color: AppColors.contentColorPink.withOpacity(0),
+                                    ),
+                                    spots: const [
+                                      FlSpot(1, 1),
+                                      FlSpot(3, 2.8),
+                                      FlSpot(7, 1.2),
+                                      FlSpot(10, 2.8),
+                                      FlSpot(12, 2.6),
+                                      FlSpot(13, 3.9),
+                                    ],
+                                  ),
+                                  LineChartBarData(
+                                    isCurved: true,
+                                    color: AppColors.contentColorCyan,
+                                    barWidth: 8,
+                                    isStrokeCapRound: true,
+                                    dotData: const FlDotData(show: false),
+                                    belowBarData: BarAreaData(show: false),
+                                    spots: const [
+                                      FlSpot(1, 2.8),
+                                      FlSpot(3, 1.9),
+                                      FlSpot(6, 3),
+                                      FlSpot(10, 1.3),
+                                      FlSpot(13, 2.5),
+                                    ],
+                                  ),
+                                ],*/
+                                minX: 0,
+                                maxX: 14,
+                                maxY: 4,
+                                /*maxPrice + 1,*/
+                                minY: 0,
+                                /*minPrice - 1,*/
                               ),
-                              LineChartBarData(
-                                isCurved: true,
-                                color: AppColors.contentColorCyan,
-                                barWidth: 8,
-                                isStrokeCapRound: true,
-                                dotData: const FlDotData(show: false),
-                                belowBarData: BarAreaData(show: false),
-                                spots: const [
-                                  FlSpot(1, 2.8),
-                                  FlSpot(3, 1.9),
-                                  FlSpot(6, 3),
-                                  FlSpot(10, 1.3),
-                                  FlSpot(13, 2.5),
-                                ],
-                              ),
-                            ],
-                            minX: 0,
-                            maxX: 14,
-                            maxY: 4,
-                            minY: 0,
+                              duration: const Duration(milliseconds: 250),
+                            ),
                           ),
-                          duration: const Duration(milliseconds: 250),
-                        ),
+                          Container(
+                            height: 80,
+                            color: Colors.red,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: lst.length,
+                              itemBuilder: (context, index) {
+                                return Text(lst[index]['supplierModel']['name']);
+                              },
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
@@ -274,10 +340,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  SideTitles leftTitles() => SideTitles(
+  SideTitles leftTitles(double interval) => SideTitles(
         getTitlesWidget: leftTitleWidgets,
         showTitles: true,
-        interval: 1,
+        interval: interval,
         reservedSize: 40,
       );
 
@@ -286,31 +352,13 @@ class _HomeScreenState extends State<HomeScreen> {
       fontWeight: FontWeight.bold,
       fontSize: 14,
     );
-    String text;
-    switch (value.toInt()) {
-      case 1:
-        text = '1m';
-        break;
-      case 2:
-        text = '2m';
-        break;
-      case 3:
-        text = '3m';
-        break;
-      case 4:
-        text = '5m';
-        break;
-      case 5:
-        text = '6m';
-        break;
-      default:
-        return Container();
-    }
 
-    return Text(text, style: style, textAlign: TextAlign.center);
+    return Text(value.toString(), style: style, textAlign: TextAlign.center);
   }
 
   Widget bottomTitleWidgets(double value, TitleMeta meta) {
+    bool isMobilePhone = MediaQuery.of(context).size.width < 600;
+
     const style = TextStyle(
       fontWeight: FontWeight.bold,
       fontSize: 16,
@@ -318,40 +366,40 @@ class _HomeScreenState extends State<HomeScreen> {
     Widget text;
     switch (value.toInt()) {
       case 1:
-        text = const Text('JAN', style: style);
+        text = Text(isMobilePhone ? 'J' : 'JAN', style: style);
         break;
       case 2:
-        text = const Text('SEPT', style: style);
+        text = Text(isMobilePhone ? 'F' : 'FEV', style: style);
         break;
       case 3:
-        text = const Text('MAR', style: style);
+        text = Text(isMobilePhone ? 'M' : 'MAR', style: style);
         break;
       case 4:
-        text = const Text('APR', style: style);
+        text = Text(isMobilePhone ? 'A' : 'APR', style: style);
         break;
       case 5:
-        text = const Text('MAY', style: style);
+        text = Text(isMobilePhone ? 'M' : 'MAY', style: style);
         break;
       case 6:
-        text = const Text('JUN', style: style);
+        text = Text(isMobilePhone ? 'J' : 'JUN', style: style);
         break;
       case 7:
-        text = const Text('JUL', style: style);
+        text = Text(isMobilePhone ? 'J' : 'JUL', style: style);
         break;
       case 8:
-        text = const Text('AUG', style: style);
+        text = Text(isMobilePhone ? 'A' : 'AUG', style: style);
         break;
       case 9:
-        text = const Text('SEP', style: style);
+        text = Text(isMobilePhone ? 'S' : 'SEP', style: style);
         break;
       case 10:
-        text = const Text('OCT', style: style);
+        text = Text(isMobilePhone ? 'O' : 'OCT', style: style);
         break;
       case 11:
-        text = const Text('NOV', style: style);
+        text = Text(isMobilePhone ? 'N' : 'NOV', style: style);
         break;
       case 12:
-        text = const Text('DEC', style: style);
+        text = Text(isMobilePhone ? 'D' : 'DEC', style: style);
         break;
 
       default:
