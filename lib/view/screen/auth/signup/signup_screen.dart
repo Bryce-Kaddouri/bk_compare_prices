@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../provider/auth_provider.dart';
 import '../../home/home_screen.dart';
+
 class SignUpScreen extends StatefulWidget {
   SignUpScreen({super.key});
 
@@ -19,19 +20,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final TextEditingController _passwordFieldKey = TextEditingController();
 
-  final _confirmPasswordFieldKey =  GlobalKey<FormBuilderFieldState>();
+  final _confirmPasswordFieldKey = GlobalKey<FormBuilderFieldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FormBuilder(
         key: _formKey,
-        child:
-        Container(
+        child: Container(
           padding: const EdgeInsets.all(16),
-          child:
-
-          Column(
+          child: Column(
             children: [
               Spacer(),
               Text(
@@ -39,15 +37,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 style: Theme.of(context).textTheme.headline4,
               ),
               Spacer(),
-          FormBuilderTextField(
-            name: 'company_name',
-            decoration: const InputDecoration(labelText: 'Company Name'),
-            validator: FormBuilderValidators.compose([
-              FormBuilderValidators.required(),
-            ]),
-          ),
+              FormBuilderTextField(
+                name: 'company_name',
+                decoration: const InputDecoration(labelText: 'Company Name'),
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(),
+                ]),
+              ),
               const SizedBox(height: 10),
-
               FormBuilderTextField(
                 name: 'email',
                 decoration: const InputDecoration(labelText: 'Email'),
@@ -85,13 +82,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     TextSpan(
                       text: 'Sign In',
                       style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () {
                           // navigate to sign in screen
                           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignInScreen()));
-
                         },
                     ),
                   ],
@@ -102,43 +98,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 color: Theme.of(context).colorScheme.secondary,
                 onPressed: () {
                   // Validate and save the form values
-                  if(_formKey.currentState!.saveAndValidate()) {
-                    bool passwordMatch = _formKey.currentState
-                        ?.value['password'] ==
-                        _formKey.currentState?.value['confirm_password'];
-                    print(passwordMatch);
+                  if (_formKey.currentState!.saveAndValidate()) {
+                    bool passwordMatch = _formKey.currentState?.value['password'] == _formKey.currentState?.value['confirm_password'];
 
                     if (!passwordMatch) {
-                      _confirmPasswordFieldKey.currentState?.invalidate(
-                          'Passwords do not match');
-                    }else{
+                      _confirmPasswordFieldKey.currentState?.invalidate('Passwords do not match');
+                    } else {
                       context.read<AuthenticationProvider>().signUp(_formKey.currentState?.value['email'], _formKey.currentState?.value['password'], _formKey.currentState?.value['company_name']).whenComplete(() {
                         print("Sign up complete");
                         print(context.read<AuthenticationProvider>().user);
-                        if(context.read<AuthenticationProvider>().user != null){
+                        if (context.read<AuthenticationProvider>().user != null) {
                           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
                         }
-                        setState(() {
-
-                        });
+                        setState(() {});
                       });
-
                     }
                   }
                 },
                 child: context.watch<AuthenticationProvider>().isLoading
-                    ?
-                    Container(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
-                    )
+                    ? Container(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      )
                     : const Text(
-                  'Sign Up',
-                  style: TextStyle(color: Colors.white),
-                ),
+                        'Sign Up',
+                        style: TextStyle(color: Colors.white),
+                      ),
               ),
               Spacer(),
             ],

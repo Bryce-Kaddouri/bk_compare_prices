@@ -14,7 +14,6 @@ class FirestoreRepo {
     } else {
       try {
         DocumentReference ref = await _firebaseFirestore.collection("users").doc(user.uid).collection("suppliers").add(datas);
-        print("createSupplier");
         return ref.id;
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
@@ -28,7 +27,6 @@ class FirestoreRepo {
     } else {
       try {
         _firebaseFirestore.collection("users").doc(user.uid).collection("suppliers").doc(supplierId).update(datas);
-        print("updateSupplier");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
       }
@@ -41,7 +39,6 @@ class FirestoreRepo {
     } else {
       try {
         _firebaseFirestore.collection("users").doc(user.uid).collection("suppliers").doc(supplierId).delete();
-        print("deleteSupplier");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
       }
@@ -54,11 +51,9 @@ class FirestoreRepo {
     } else {
       try {
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firebaseFirestore.collection("users").doc(user.uid).collection("suppliers").get();
-        print("getSuppliers");
         return querySnapshot.docs.map((e) {
           Map<String, dynamic> data = e.data();
           data["id"] = e.id;
-          print(data);
           return data;
         }).toList();
       } on FirebaseException catch (e) {
@@ -75,14 +70,10 @@ class FirestoreRepo {
       try {
         DocumentReference ref = await _firebaseFirestore.collection("users").doc(user.uid).collection("products").add(datas);
         List<Map<String, dynamic>> prices = datas["prices"];
-        print("createProduct");
-        print(prices);
         for (Map<String, dynamic> price in prices) {
-          print(price);
           price['createdAt'] = DateTime.now();
           addPriceHistory(user, ref.id, price['supplierId'], price['price']);
         }
-        print(prices);
 
         /*addPriceHistory(user, ref.id, prices);*/
 
@@ -94,33 +85,26 @@ class FirestoreRepo {
   }
 
   void updateProduct(Map<String, dynamic> datas, User user, String productId, bool addHistory) async {
-    print("updateProduct repo");
     if (user.uid == null) {
       throw Exception("Invalid user");
     } else {
       try {
         if (datas["prices"] != null) {
-          print("updateProduct repo prices");
-          print(datas["prices"]);
           DocumentSnapshot oldProduct = await _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).get();
           List<dynamic> oldPrices = oldProduct.get('prices');
-          print("oldPrices");
-          print(oldPrices);
+
           List<Map<String, dynamic>> newPrices = datas["prices"];
 
           for (int i = 0; i < newPrices.length; i++) {
             if (addHistory) {
               addPriceHistory(user, productId, newPrices[i]["supplierId"], newPrices[i]["price"]);
             }
-            print('oldSupplierId = ${oldPrices[i]["supplierId"]}');
-            print('newSupplierId = ${newPrices[i]["supplierId"]}');
+
             var old = oldPrices.firstWhere((element) => element["supplierId"] == newPrices[i]["supplierId"], orElse: () => null);
-            print(old);
 
             if (old != null) {
               int index = oldPrices.indexOf(old);
-              print(old);
-              print(old["supplierId"] == newPrices[i]["supplierId"]);
+
               if (old["supplierId"] == newPrices[i]["supplierId"]) {
                 oldPrices.elementAt(index)["price"] = newPrices[i]["price"];
               }
@@ -128,16 +112,8 @@ class FirestoreRepo {
               oldPrices.add(newPrices[i]);
             }
           }
-
-          print("test");
-          print(oldPrices);
-          datas["prices"] = oldPrices;
-
-          // merge old prices with new prices
         }
         _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).update(datas);
-
-        print("updateProduct");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
       }
@@ -150,7 +126,6 @@ class FirestoreRepo {
     } else {
       try {
         _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).delete();
-        print("deleteProduct");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
       }
@@ -165,7 +140,6 @@ class FirestoreRepo {
         _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).update({
           "prices": FieldValue.arrayRemove([price])
         });
-        print("deletePriceProduct");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
       }
@@ -178,11 +152,11 @@ class FirestoreRepo {
     } else {
       try {
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firebaseFirestore.collection("users").doc(user.uid).collection("products").get();
-        print("getProducts");
+
         return querySnapshot.docs.map((e) {
           Map<String, dynamic> data = e.data();
           data["id"] = e.id;
-          print(data);
+
           return data;
         }).toList();
       } on FirebaseException catch (e) {
@@ -202,7 +176,6 @@ class FirestoreRepo {
           "price": price,
           "created_at": DateTime.now(),
         });
-        print("addPriceHistory");
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
       }
@@ -238,7 +211,6 @@ class FirestoreRepo {
     } else {
       try {
         DocumentSnapshot<Map<String, dynamic>> querySnapshot = await _firebaseFirestore.collection("users").doc(user.uid).collection("price_history").doc(productId).get();
-        print("getPriceHistory");
         return querySnapshot.data()!["price_history"];
       } on FirebaseException catch (e) {
         HandleException.handleException(e.code, message: e.message);
@@ -252,11 +224,9 @@ class FirestoreRepo {
     } else {
       try {
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firebaseFirestore.collection("users").doc(user.uid).collection("price_history").where("supplier_id", isEqualTo: supplierId).get();
-        print("getSupplierPriceHistory");
         return querySnapshot.docs.map((e) {
           Map<String, dynamic> data = e.data();
           data["id"] = e.id;
-          print(data);
           return data;
         }).toList();
       } on FirebaseException catch (e) {
@@ -303,8 +273,6 @@ class FirestoreRepo {
     } else {
       try {
         _firebaseFirestore.collection("users").doc(user.uid).collection("products").doc(productId).get().then((value) {
-          print("getProductById");
-          print(value.data());
           return value.data();
         });
       } on FirebaseException catch (e) {
@@ -329,7 +297,6 @@ class FirestoreRepo {
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> streamHistoryByProductId(String productId, User user) {
-    print('firestore stram history');
     return _firebaseFirestore.collection('users').doc(user.uid).collection('priceHistory').doc(productId).collection('prices').snapshots();
   }
 

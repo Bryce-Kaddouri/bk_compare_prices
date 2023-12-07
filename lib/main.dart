@@ -30,12 +30,10 @@ void main() async {
       create: (_) => AuthenticationProvider(AuthRepo(auth)),
     ),
     ChangeNotifierProvider<SupplierProvider>(
-      create: (_) =>
-          SupplierProvider(FirestoreRepo(firestore), StorageRepo(storage)),
+      create: (_) => SupplierProvider(FirestoreRepo(firestore), StorageRepo(storage)),
     ),
     ChangeNotifierProvider<ProductProvider>(
-      create: (_) =>
-          ProductProvider(FirestoreRepo(firestore), StorageRepo(storage)),
+      create: (_) => ProductProvider(FirestoreRepo(firestore), StorageRepo(storage)),
     ),
   ], child: const MyApp()));
 }
@@ -46,16 +44,12 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    print("MyApp build");
-    print(context.watch<AuthenticationProvider>().user);
     return GetMaterialApp(
       title: 'BK Compare Prices',
       theme: lightTheme,
       home: StreamBuilder<User?>(
         stream: context.watch<AuthenticationProvider>().authStateChanges,
         builder: (context, snapshot) {
-          print("StreamBuilder build");
-          print(snapshot.data);
           if (snapshot.data == null) {
             return SignInScreen();
           } else {

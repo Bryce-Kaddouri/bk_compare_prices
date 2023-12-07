@@ -18,8 +18,6 @@ class SupplierModel {
   });
 
   factory SupplierModel.fromJson(Map<String, dynamic> json) {
-    print("SupplierModel.fromJson");
-    print(json);
     Timestamp createdAt = json["createdAt"];
     Timestamp updatedAt = json["updatedAt"];
     DateTime createdAtDate = createdAt.toDate();

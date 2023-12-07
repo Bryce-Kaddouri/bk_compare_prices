@@ -273,7 +273,6 @@ class ProductProvider with ChangeNotifier {
     List<Map<String, dynamic>> datas = await _firestoreRepo.getHistoryByProductId(productId, user!);
     List<PriceModelHistory> priceModelHistory = [];
     for (var element in datas) {
-      print('loop hostory n provider');
       print(element);
       priceModelHistory.add(PriceModelHistory.fromJson(element));
     }
