@@ -5,7 +5,6 @@ import 'package:compare_prices/view/screen/product/product_detail/product_detail
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../provider/auth_provider.dart';
 import '../home/home_screen.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -19,11 +18,6 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      context
-          .read<ProductProvider>()
-          .getProducts(context.read<AuthenticationProvider>().user!);
-    });
   }
 
   @override
@@ -34,8 +28,7 @@ class _ProductScreenState extends State<ProductScreen> {
           leading: Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen())),
+              onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen())),
             ),
           ),
           centerTitle: true,
@@ -59,7 +52,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     child: InkWell(
                       onTap: () {
                         context.read<ProductProvider>().setSelectedProduct(
-                            productList[index],
+                              productList[index],
                             );
                         Navigator.push(
                           context,
@@ -90,14 +83,9 @@ class _ProductScreenState extends State<ProductScreen> {
                               alignment: Alignment.center,
                               child: Text(
                                 // display the lowest price
-                                productList[index].prices.isEmpty
-                                    ? "No Price"
-                                    : '${productList[index].prices.reduce((a, b) => a.price < b.price ? a : b).price.toString()} €',
+                                productList[index].prices.isEmpty ? "No Price" : '${productList[index].prices.reduce((a, b) => a.price < b.price ? a : b).price.toString()} €',
 
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headline6
-                                    ?.copyWith(
+                                style: Theme.of(context).textTheme.headline6?.copyWith(
                                       fontSize: 24,
                                       color: Colors.green,
                                     ),
@@ -112,19 +100,12 @@ class _ProductScreenState extends State<ProductScreen> {
                                   children: [
                                     Text(
                                       productList[index].name,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .headline6
-                                          ?.copyWith(fontSize: 24),
+                                      style: Theme.of(context).textTheme.headline6?.copyWith(fontSize: 24),
                                     ),
                                     Spacer(),
                                     Text(
-                                      productList[index].createdAt.isBefore(
-                                              productList[index].createdAt)
-                                          ? "Created at: ${DateHelper.getFormattedDate(productList[index].createdAt)}"
-                                          : "Updated at: ${DateHelper.getFormattedDate(productList[index].updatedAt)}",
-                                      style:
-                                          Theme.of(context).textTheme.bodyText2,
+                                      productList[index].createdAt.isBefore(productList[index].createdAt) ? "Created at: ${DateHelper.getFormattedDate(productList[index].createdAt)}" : "Updated at: ${DateHelper.getFormattedDate(productList[index].updatedAt)}",
+                                      style: Theme.of(context).textTheme.bodyText2,
                                     ),
                                   ],
                                 ),

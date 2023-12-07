@@ -179,12 +179,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           print(supplierId);
                         }
                       }
-                      print('*' * 30);
-
-                      print(lst);
-                      print('*' * 30);
-                      print(minPrice);
-                      print(maxPrice);
 
                       return Column(
                         children: [
@@ -330,7 +324,95 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                           ),
+                          SizedBox(
+                            height: 20,
+                          ),
                         ],
+                      );
+                    },
+                  ),
+                  Builder(
+                    builder: (context) {
+                      var product = context.watch<ProductProvider>().products.firstWhere((element) => element.id == 'VLmjBwRmjtE47FdH1uXY');
+                      double minPrice = 0;
+                      double maxPrice = 0;
+                      for (var price in product.prices) {
+                        if (price.price > maxPrice) {
+                          maxPrice = price.price;
+                        }
+                        if (minPrice == 0) {
+                          minPrice = price.price;
+                        } else {
+                          if (price.price < minPrice) {
+                            minPrice = price.price;
+                          }
+                        }
+                      }
+                      int interval = ((maxPrice - minPrice) / 10).floor();
+                      print('minPrice');
+                      print(minPrice);
+                      print('maxPrice');
+                      print(maxPrice);
+                      print('interval');
+                      print(interval);
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                        child: BarChart(
+                          BarChartData(
+                              backgroundColor: Colors.white,
+                              maxY: maxPrice + interval,
+                              minY: 0,
+                              titlesData: FlTitlesData(
+                                leftTitles: AxisTitles(
+                                  axisNameWidget: Text('Price (€)'),
+                                  sideTitles: leftTitles(interval.toDouble()),
+                                ),
+                                rightTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                topTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  axisNameWidget: Text('Supplier'),
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 32,
+                                    interval: 1,
+                                    getTitlesWidget: bottomTitleWidgetsBar,
+                                  ),
+                                ),
+                              ),
+                              barGroups: List.generate(product.prices.length, (index) {
+                                double price = product.prices[index].price;
+                                SupplierModel supplierModel = context.read<SupplierProvider>().suppliers.firstWhere((element) => element.id == product.prices[index].supplierId);
+                                String supplierName = supplierModel.name;
+                                List<int> color = supplierModel.color;
+                                Color colorSupplier = Color.fromRGBO(color[0], color[1], color[2], 1);
+                                print('barchart');
+                                print(price);
+                                print(supplierName);
+                                print(color);
+                                return BarChartGroupData(
+                                  x: index,
+                                  barRods: [
+                                    BarChartRodData(
+                                      borderRadius: const BorderRadius.all(Radius.circular(0)),
+                                      width: 20,
+                                      toY: price,
+                                      color: Colors.red,
+                                      rodStackItems: [
+                                        BarChartRodStackItem(0, price, colorSupplier),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              })),
+                          swapAnimationDuration: Duration(milliseconds: 150), // Optional
+                          swapAnimationCurve: Curves.linear, // Optional
+                        ),
                       );
                     },
                   ),
@@ -354,6 +436,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     return Text(value.toString(), style: style, textAlign: TextAlign.center);
+  }
+
+  Widget bottomTitleWidgetsBar(double value, TitleMeta meta) {
+    String supplierName = context.watch<SupplierProvider>().suppliers.firstWhere((element) => element.id == context.watch<ProductProvider>().products.firstWhere((element) => element.id == 'VLmjBwRmjtE47FdH1uXY').prices[value.toInt()].supplierId).name;
+
+    return Text(supplierName);
   }
 
   Widget bottomTitleWidgets(double value, TitleMeta meta) {

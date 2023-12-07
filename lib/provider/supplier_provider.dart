@@ -45,8 +45,7 @@ class SupplierProvider with ChangeNotifier {
     print("getSuppliers");
     setLoading(true);
     try {
-      List<Map<String, dynamic>>? suppliers =
-          await _firestoreRepo.getSuppliers(user!);
+      List<Map<String, dynamic>>? suppliers = await _firestoreRepo.getSuppliers(user!);
       List<SupplierModel> supplierModels = [];
       suppliers?.forEach((element) {
         print(element);
@@ -60,8 +59,7 @@ class SupplierProvider with ChangeNotifier {
     setLoading(false);
   }
 
-  Future<String?> createSupplier(
-      String supplierName, String photoUrl, User? user) async {
+  Future<String?> createSupplier(String supplierName, String photoUrl, User? user, List<int> color) async {
     print("createSupplier");
     print('user.uid');
     print(user!.uid);
@@ -72,6 +70,7 @@ class SupplierProvider with ChangeNotifier {
         "photoUrl": photoUrl,
         "createdAt": DateTime.now(),
         "updatedAt": DateTime.now(),
+        "color": color,
       };
       return _firestoreRepo.createSupplier(supplier, user);
       print("createSupplier");
@@ -81,8 +80,7 @@ class SupplierProvider with ChangeNotifier {
     setLoading(false);
   }
 
-  void updateSupplier(
-      Map<String, dynamic> supplier, String supplierId, User? user) {
+  void updateSupplier(Map<String, dynamic> supplier, String supplierId, User? user) {
     if (user!.uid == null) {
       throw Exception("Invalid user");
     }
@@ -111,8 +109,7 @@ class SupplierProvider with ChangeNotifier {
               title: const Text('Photo Library'),
               onTap: () async {
                 Get.back();
-                XFile? imageFile =
-                    await _picker.pickImage(source: ImageSource.gallery);
+                XFile? imageFile = await _picker.pickImage(source: ImageSource.gallery);
                 setImageFile(imageFile);
               },
             ),
@@ -122,8 +119,7 @@ class SupplierProvider with ChangeNotifier {
                 title: const Text('Camera'),
                 onTap: () async {
                   Get.back();
-                  XFile? imageFile =
-                      await _picker.pickImage(source: ImageSource.camera);
+                  XFile? imageFile = await _picker.pickImage(source: ImageSource.camera);
                   setImageFile(imageFile);
                 },
               ),

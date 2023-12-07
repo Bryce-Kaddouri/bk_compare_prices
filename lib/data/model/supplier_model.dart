@@ -6,6 +6,7 @@ class SupplierModel {
   String photoUrl;
   DateTime createdAt;
   DateTime updatedAt;
+  List<int> color;
 
   SupplierModel({
     required this.id,
@@ -13,6 +14,7 @@ class SupplierModel {
     required this.photoUrl,
     required this.createdAt,
     required this.updatedAt,
+    required this.color,
   });
 
   factory SupplierModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class SupplierModel {
       photoUrl: json["photoUrl"],
       createdAt: createdAtDate,
       updatedAt: updatedAtDate,
+      color: json["color"].cast<int>(),
     );
   }
 
@@ -37,5 +40,6 @@ class SupplierModel {
         "photoUrl": photoUrl,
         "createdAt": createdAt.toIso8601String(),
         "updatedAt": updatedAt.toIso8601String(),
+        "color": color,
       };
 }
