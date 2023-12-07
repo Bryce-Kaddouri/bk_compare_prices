@@ -179,6 +179,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           print(supplierId);
                         }
                       }
+                      int currentYear = DateTime.now().year;
+                      int interval = ((maxPrice - minPrice) / 10).floor();
+                      lst = lst.where((element) {
+                        int year = element['priceHistory'].length > 0 ? element['priceHistory'][element['priceHistory'].length - 1]['created_at'].toDate().year : 0;
+                        print('year');
+                        print(year);
+                        return element['priceHistory'].length > 0 && year == currentYear;}).toList();
 
                       return Column(
                         children: [
@@ -209,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     sideTitles: SideTitles(showTitles: false),
                                   ),
                                   leftTitles: AxisTitles(
-                                    sideTitles: leftTitles(1),
+                                    sideTitles: leftTitles(interval.toDouble()),
                                   ),
                                 ),
                                 borderData: FlBorderData(
@@ -221,94 +228,38 @@ class _HomeScreenState extends State<HomeScreen> {
                                     top: const BorderSide(color: Colors.transparent),
                                   ),
                                 ),
-                                lineBarsData: List.generate(
-                                  lst.length,
-                                  (index) => LineChartBarData(
+                                lineBarsData: List.generate(lst.length, (index) {
+                                  SupplierModel supplier = context.read<SupplierProvider>().suppliers.firstWhere((element) => element.id == lst[index]['supplierModel']['id']);
+                                  List<int> color = supplier.color;
+                                  Color colorSupplier = Color.fromRGBO(color[0], color[1], color[2], 1);
+                                  return LineChartBarData(
                                     isCurved: true,
-                                    color: Color.fromRGBO(Random().nextInt(255), Random().nextInt(255), Random().nextInt(255), 1),
+                                    curveSmoothness: 0,
+                                    color: colorSupplier,
                                     barWidth: 8,
                                     isStrokeCapRound: true,
                                     dotData: const FlDotData(show: false),
                                     belowBarData: BarAreaData(show: false),
                                     spots:
-                                        /*List.generate(lst[index]['priceHistory'].length, (index2) {
-                                      print(lst[index]['priceHistory'][index2]['created_at'].toDate().month.toDouble() + 1);
+                                        List.generate(lst[index]['priceHistory'].length <2 ? 2 : lst[index]['priceHistory'].length, (index2) {
+                                          print('test');
+                                      print(lst[index]['priceHistory'].length);
+                                      int month = lst[index]['priceHistory'][lst[index]['priceHistory'].length <2 ? 0 : index2]['created_at'].toDate().month;
+                                      print(month);
+
                                       return FlSpot(
-                                        Random().nextInt(3).toDouble(),
-                                        lst[index]['priceHistory'][index2]['price'].toDouble(),
+                                        month.toDouble(),
+                                        lst[index]['priceHistory'][lst[index]['priceHistory'].length <2 ? 0 : index2]['price'].toDouble(),
                                       );
-                                    }),*/
-                                        const [
-                                      FlSpot(1, 1),
-                                      FlSpot(3, 1.5),
-                                      FlSpot(5, 1.4),
-                                      FlSpot(7, 3.4),
-                                      FlSpot(10, 2),
-                                      FlSpot(12, 2.2),
-                                      FlSpot(13, 1.8),
-                                    ],
-                                  ),
-                                ),
-                                /*[
-                                  // data for the suppliers
-                                  LineChartBarData(
-                                    isCurved: true,
-                                    color: AppColors.contentColorGreen,
-                                    barWidth: 8,
-                                    isStrokeCapRound: true,
-                                    dotData: const FlDotData(show: false),
-                                    belowBarData: BarAreaData(show: false),
-                                    spots: const [
-                                      FlSpot(1, 1),
-                                      FlSpot(3, 1.5),
-                                      FlSpot(5, 1.4),
-                                      FlSpot(7, 3.4),
-                                      FlSpot(10, 2),
-                                      FlSpot(12, 2.2),
-                                      FlSpot(13, 1.8),
-                                    ],
-                                  ),
-                                  LineChartBarData(
-                                    isCurved: true,
-                                    color: AppColors.contentColorPink,
-                                    barWidth: 8,
-                                    isStrokeCapRound: true,
-                                    dotData: const FlDotData(show: false),
-                                    belowBarData: BarAreaData(
-                                      show: false,
-                                      color: AppColors.contentColorPink.withOpacity(0),
-                                    ),
-                                    spots: const [
-                                      FlSpot(1, 1),
-                                      FlSpot(3, 2.8),
-                                      FlSpot(7, 1.2),
-                                      FlSpot(10, 2.8),
-                                      FlSpot(12, 2.6),
-                                      FlSpot(13, 3.9),
-                                    ],
-                                  ),
-                                  LineChartBarData(
-                                    isCurved: true,
-                                    color: AppColors.contentColorCyan,
-                                    barWidth: 8,
-                                    isStrokeCapRound: true,
-                                    dotData: const FlDotData(show: false),
-                                    belowBarData: BarAreaData(show: false),
-                                    spots: const [
-                                      FlSpot(1, 2.8),
-                                      FlSpot(3, 1.9),
-                                      FlSpot(6, 3),
-                                      FlSpot(10, 1.3),
-                                      FlSpot(13, 2.5),
-                                    ],
-                                  ),
-                                ],*/
+                                    }),
+
+                                  );
+                                }),
                                 minX: 0,
                                 maxX: 14,
-                                maxY: 4,
-                                /*maxPrice + 1,*/
-                                minY: 0,
-                                /*minPrice - 1,*/
+                                maxY:
+                                maxPrice + interval,
+                                minY:0,
                               ),
                               duration: const Duration(milliseconds: 250),
                             ),
@@ -320,7 +271,23 @@ class _HomeScreenState extends State<HomeScreen> {
                               scrollDirection: Axis.horizontal,
                               itemCount: lst.length,
                               itemBuilder: (context, index) {
-                                return Text(lst[index]['supplierModel']['name']);
+                                SupplierModel supplier = context.read<SupplierProvider>().suppliers.firstWhere((element) => element.id == lst[index]['supplierModel']['id']);
+                                List<int> color = supplier.color;
+                                Color colorSupplier = Color.fromRGBO(color[0], color[1], color[2], 1);
+                                return
+                                  Container(child:
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 20,
+                                            height: 20,
+                                            color: colorSupplier,
+                                          ),
+                                          SizedBox(width: 10,),
+                                          Text(lst[index]['supplierModel']['name']),
+                                        ],
+                                      ),
+                                  );
                               },
                             ),
                           ),
