@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:compare_prices/data/model/product_model.dart';
 import 'package:compare_prices/data/model/supplier_model.dart';
 import 'package:compare_prices/provider/product_provider.dart';
@@ -11,7 +9,6 @@ import 'package:provider/provider.dart';
 
 import '../../../provider/auth_provider.dart';
 import '../../../provider/supplier_provider.dart';
-import '../../base/charts/line-chart/line_chart_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -149,7 +146,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       List suppliers = context.watch<SupplierProvider>().suppliers;
                       List lst = [];
                       double minPrice = 0;
-                      double maxPrice = 0;
+                      double maxPrice = 1;
+                      int interval = 1;
                       for (SupplierModel supp in suppliers) {
                         lst.add({'supplierModel': supp.toJson(), 'priceHistory': []});
                       }
@@ -179,18 +177,58 @@ class _HomeScreenState extends State<HomeScreen> {
                           print(supplierId);
                         }
                       }
-                      int currentYear = DateTime.now().year;
-                      int interval = ((maxPrice - minPrice) / 10).floor();
+                      /* int currentYear = DateTime.now().year;*/
+                      interval = ((maxPrice - minPrice) / 10).floor();
                       lst = lst.where((element) {
-                        int year = element['priceHistory'].length > 0 ? element['priceHistory'][element['priceHistory'].length - 1]['created_at'].toDate().year : 0;
+                        /*  int year = element['priceHistory'].length > 0 ? element['priceHistory'][element['priceHistory'].length - 1]['created_at'].toDate().year : 0;
                         print('year');
-                        print(year);
-                        return element['priceHistory'].length > 0 && year == currentYear;}).toList();
+                        print(year);*/
+                        return element['priceHistory'].length > 0;
+                      }).toList();
+
+                      print('lst');
+                      print(lst);
 
                       return Column(
                         children: [
                           Container(
-                            height: MediaQuery.of(context).size.height,
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            width: double.infinity,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.only(left: MediaQuery.of(context).size.width > 600 ? 100 : 20),
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    shape: BoxShape.rectangle,
+                                    border: Border.all(
+                                      color: Colors.black,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Text('Price (€)'),
+                                ),
+                                Expanded(
+                                    child: Container(
+                                  margin: EdgeInsets.only(right: MediaQuery.of(context).size.width > 600 ? 100 : 20),
+                                  alignment: Alignment.center,
+                                  child: Flexible(
+                                    child: Text(
+                                      'Evolutions of prices by supplier',
+                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                )),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.only(right: MediaQuery.of(context).size.width > 600 ? 100 : 20, left: MediaQuery.of(context).size.width > 600 ? 100 : 20),
+                            height: MediaQuery.of(context).size.height - 200,
                             width: MediaQuery.of(context).size.width,
                             child: LineChart(
                               LineChartData(
@@ -205,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     sideTitles: SideTitles(
                                       showTitles: true,
                                       reservedSize: 32,
-                                      interval: 500,
+                                      interval: 1,
                                       getTitlesWidget: bottomTitleWidgets,
                                     ),
                                   ),
@@ -222,8 +260,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderData: FlBorderData(
                                   show: true,
                                   border: Border(
-                                    bottom: BorderSide(color: AppColors.primary.withOpacity(0.2), width: 4),
-                                    left: const BorderSide(color: Colors.transparent),
+                                    bottom: BorderSide(color: Colors.black, width: 2),
+                                    left: const BorderSide(color: Colors.black, width: 2),
                                     right: const BorderSide(color: Colors.transparent),
                                     top: const BorderSide(color: Colors.transparent),
                                   ),
@@ -236,58 +274,66 @@ class _HomeScreenState extends State<HomeScreen> {
                                     isCurved: true,
                                     curveSmoothness: 0,
                                     color: colorSupplier,
-                                    barWidth: 8,
+                                    barWidth: 4,
                                     isStrokeCapRound: true,
-                                    dotData: const FlDotData(show: false),
-                                    belowBarData: BarAreaData(show: false),
-                                    spots:
-                                        List.generate(lst[index]['priceHistory'].length <2 ? 2 : lst[index]['priceHistory'].length, (index2) {
-                                          print('test');
-                                      print(lst[index]['priceHistory'].length);
-                                      int month = lst[index]['priceHistory'][lst[index]['priceHistory'].length <2 ? 0 : index2]['created_at'].toDate().month;
+                                    dotData: const FlDotData(
+                                      show: true,
+                                    ),
+                                    spots: List.generate(lst[index]['priceHistory'].length, (index2) {
+                                      print('month data');
+                                      int month = lst[index]['priceHistory'][index2]['created_at'].toDate().month;
                                       print(month);
+                                      print('price data');
+                                      print(lst[index]['priceHistory'][index2]['price']);
 
                                       return FlSpot(
-                                        month.toDouble(),
-                                        lst[index]['priceHistory'][lst[index]['priceHistory'].length <2 ? 0 : index2]['price'].toDouble(),
+                                        (6 + index2).toDouble(),
+                                        lst[index]['priceHistory'][index2]['price'].toDouble(),
                                       );
                                     }),
-
                                   );
                                 }),
-                                minX: 0,
-                                maxX: 14,
-                                maxY:
-                                maxPrice + interval,
-                                minY:0,
+                                minX: 1,
+                                maxX: 12,
+                                maxY: maxPrice + interval,
+                                minY: 0,
                               ),
                               duration: const Duration(milliseconds: 250),
                             ),
                           ),
                           Container(
-                            height: 80,
                             color: Colors.red,
+                            width: MediaQuery.of(context).size.width,
+                            height: 60,
                             child: ListView.builder(
+                              shrinkWrap: true,
+                              physics: const AlwaysScrollableScrollPhysics(),
                               scrollDirection: Axis.horizontal,
                               itemCount: lst.length,
                               itemBuilder: (context, index) {
                                 SupplierModel supplier = context.read<SupplierProvider>().suppliers.firstWhere((element) => element.id == lst[index]['supplierModel']['id']);
                                 List<int> color = supplier.color;
                                 Color colorSupplier = Color.fromRGBO(color[0], color[1], color[2], 1);
-                                return
-                                  Container(child:
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 20,
-                                            height: 20,
-                                            color: colorSupplier,
-                                          ),
-                                          SizedBox(width: 10,),
-                                          Text(lst[index]['supplierModel']['name']),
-                                        ],
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                                  width: 200,
+                                  height: 40,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 20,
+                                        height: 20,
+                                        color: colorSupplier,
                                       ),
-                                  );
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(lst[index]['supplierModel']['name']),
+                                    ],
+                                  ),
+                                );
                               },
                             ),
                           ),
@@ -322,64 +368,82 @@ class _HomeScreenState extends State<HomeScreen> {
                       print(maxPrice);
                       print('interval');
                       print(interval);
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.width,
-                        child: BarChart(
-                          BarChartData(
-                              backgroundColor: Colors.white,
-                              maxY: maxPrice + interval,
-                              minY: 0,
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  axisNameWidget: Text('Price (€)'),
-                                  sideTitles: leftTitles(interval.toDouble()),
-                                ),
-                                rightTitles: const AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                topTitles: const AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  axisNameWidget: Text('Supplier'),
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 32,
-                                    interval: 1,
-                                    getTitlesWidget: bottomTitleWidgetsBar,
+                      return Stack(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.only(top: 75, right: MediaQuery.of(context).size.width > 600 ? 100 : 50, left: MediaQuery.of(context).size.width > 600 ? 100 : 50),
+                            height: MediaQuery.of(context).size.height - 100,
+                            width: MediaQuery.of(context).size.width,
+                            child: BarChart(
+                              BarChartData(
+                                  backgroundColor: Colors.white,
+                                  maxY: maxPrice + interval,
+                                  minY: 0,
+                                  titlesData: FlTitlesData(
+                                    leftTitles: AxisTitles(
+                                      sideTitles: leftTitles(interval.toDouble()),
+                                    ),
+                                    rightTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    topTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 32,
+                                        interval: 1,
+                                        getTitlesWidget: bottomTitleWidgetsBar,
+                                      ),
+                                    ),
                                   ),
+                                  barGroups: List.generate(product.prices.length, (index) {
+                                    double price = product.prices[index].price;
+                                    SupplierModel supplierModel = context.read<SupplierProvider>().suppliers.firstWhere((element) => element.id == product.prices[index].supplierId);
+                                    String supplierName = supplierModel.name;
+                                    List<int> color = supplierModel.color;
+                                    Color colorSupplier = Color.fromRGBO(color[0], color[1], color[2], 1);
+                                    print('barchart');
+                                    print(price);
+                                    print(supplierName);
+                                    print(color);
+                                    return BarChartGroupData(
+                                      x: index,
+                                      barRods: [
+                                        BarChartRodData(
+                                          borderRadius: const BorderRadius.all(Radius.circular(0)),
+                                          width: 20,
+                                          toY: price,
+                                          rodStackItems: [
+                                            BarChartRodStackItem(0, price, colorSupplier),
+                                          ],
+                                        ),
+                                      ],
+                                    );
+                                  })),
+                              swapAnimationDuration: Duration(milliseconds: 150), // Optional
+                              swapAnimationCurve: Curves.linear, // Optional
+                            ),
+                          ),
+                          Positioned(
+                            top: 25,
+                            left: MediaQuery.of(context).size.width > 600 ? 100 : 50,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                shape: BoxShape.rectangle,
+                                border: Border.all(
+                                  color: Colors.black,
+                                  width: 2,
                                 ),
                               ),
-                              barGroups: List.generate(product.prices.length, (index) {
-                                double price = product.prices[index].price;
-                                SupplierModel supplierModel = context.read<SupplierProvider>().suppliers.firstWhere((element) => element.id == product.prices[index].supplierId);
-                                String supplierName = supplierModel.name;
-                                List<int> color = supplierModel.color;
-                                Color colorSupplier = Color.fromRGBO(color[0], color[1], color[2], 1);
-                                print('barchart');
-                                print(price);
-                                print(supplierName);
-                                print(color);
-                                return BarChartGroupData(
-                                  x: index,
-                                  barRods: [
-                                    BarChartRodData(
-                                      borderRadius: const BorderRadius.all(Radius.circular(0)),
-                                      width: 20,
-                                      toY: price,
-                                      color: Colors.red,
-                                      rodStackItems: [
-                                        BarChartRodStackItem(0, price, colorSupplier),
-                                      ],
-                                    ),
-                                  ],
-                                );
-                              })),
-                          swapAnimationDuration: Duration(milliseconds: 150), // Optional
-                          swapAnimationCurve: Curves.linear, // Optional
-                        ),
+                              child: Text('Price (€)'),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
@@ -412,6 +476,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget bottomTitleWidgets(double value, TitleMeta meta) {
+    print('value');
+    print(value);
     bool isMobilePhone = MediaQuery.of(context).size.width < 600;
 
     const style = TextStyle(
@@ -458,13 +524,13 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
 
       default:
-        text = const Text('');
+        text = const Text('test');
         break;
     }
 
     return SideTitleWidget(
-      axisSide: meta.axisSide,
       space: 10,
+      axisSide: AxisSide.bottom,
       child: text,
     );
   }
