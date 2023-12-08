@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:compare_prices/data/model/init_data_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../datasource/exception.dart';
+import '../model/product_model.dart';
+import '../model/supplier_model.dart';
 
 class FirestoreRepo {
   final FirebaseFirestore _firebaseFirestore;
@@ -45,8 +48,8 @@ class FirestoreRepo {
     }
   }
 
-  Future<List<Map<String, dynamic>>?> getSuppliers(User user) async {
-    if (user.uid == null) {
+  Future<List<Map<String, dynamic>>?> getSuppliers(User? user) async {
+    if (user == null) {
       throw Exception("Invalid user");
     } else {
       try {
@@ -60,6 +63,7 @@ class FirestoreRepo {
         HandleException.handleException(e.code, message: e.message);
       }
     }
+    return null;
   }
 
   // method for product
@@ -146,8 +150,8 @@ class FirestoreRepo {
     }
   }
 
-  Future<List<Map<String, dynamic>>?> getProducts(User user) async {
-    if (user.uid == null) {
+  Future<List<Map<String, dynamic>>?> getProducts(User? user) async {
+    if (user == null) {
       throw Exception("Invalid user");
     } else {
       try {
@@ -163,6 +167,7 @@ class FirestoreRepo {
         HandleException.handleException(e.code, message: e.message);
       }
     }
+    return null;
   }
 
   void addPriceHistory(User user, String productId, String supplierId, double price) {
@@ -218,8 +223,8 @@ class FirestoreRepo {
     }
   }
 
-  Future<List<Map<String, dynamic>>?> getSupplierPriceHistory(User user, String supplierId) async {
-    if (user.uid == null) {
+  Future<List<Map<String, dynamic>>?> getSupplierPriceHistory(User? user, String supplierId) async {
+    if (user == null) {
       throw Exception("Invalid user");
     } else {
       try {
@@ -233,6 +238,7 @@ class FirestoreRepo {
         HandleException.handleException(e.code, message: e.message);
       }
     }
+    return null;
   }
 
   /* void deletePriceProductBySupplierId(User user, String supplierId, String productId) {
@@ -308,5 +314,47 @@ class FirestoreRepo {
       }
     });
     return productId;
+  }
+
+  Stream<InitDataModel> initDatas() {
+    User? user = FirebaseAuth.instance.currentUser;
+    /*return  Future.wait([getSuppliers(user), getProducts(user)]).then((value) {
+      print("value");
+      print(value);
+      List<SupplierModel?> suppliers = [];
+      for (var element in value[0]!) {
+        suppliers.add(SupplierModel.fromJson(element));
+      }
+      List<ProductModel?> products = [];
+      for (var element in value[1]!) {
+        products.add(ProductModel.fromJson(element));
+      }
+      InitDataModel datas = InitDataModel(suppliers: suppliers, products: products);
+      print("datas");
+      print(datas);
+      return datas;
+    });*/
+
+    return Stream.fromFuture(Future.wait([getSuppliers(user), getProducts(user)])).map((value) {
+      try {
+        print("value");
+        print(value);
+        List<SupplierModel?> suppliers = [];
+        for (var element in value[0]!) {
+          suppliers.add(SupplierModel.fromJson(element));
+        }
+        List<ProductModel?> products = [];
+        for (var element in value[1]!) {
+          products.add(ProductModel.fromJson(element));
+        }
+        InitDataModel datas = InitDataModel(suppliers: suppliers, products: products);
+        print("datas");
+        print(datas);
+        return datas;
+      } catch (e) {
+        print(e);
+        return InitDataModel(suppliers: [], products: []);
+      }
+    });
   }
 }

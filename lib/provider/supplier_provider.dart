@@ -36,8 +36,13 @@ class SupplierProvider with ChangeNotifier {
   List<SupplierModel> _suppliers = [];
   List<SupplierModel> get suppliers => _suppliers;
 
-  void setSuppliers(List<SupplierModel> suppliers) {
-    _suppliers = suppliers;
+  void setSuppliers(List<SupplierModel?> suppliers) {
+    if (suppliers.isEmpty) {
+      _suppliers = [];
+      notifyListeners();
+      return;
+    }
+    _suppliers = suppliers.map((e) => e!).toList();
     notifyListeners();
   }
 

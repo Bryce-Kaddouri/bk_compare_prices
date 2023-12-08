@@ -27,6 +27,14 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String _searchText = "";
+  String get searchText => _searchText;
+
+  void setSearchText(String searchText) {
+    _searchText = searchText;
+    notifyListeners();
+  }
+
   XFile? _imageFile;
 
   XFile? get imageFile => _imageFile;
@@ -39,8 +47,13 @@ class ProductProvider with ChangeNotifier {
   List<ProductModel> _products = [];
   List<ProductModel> get products => _products;
 
-  void setProducts(List<ProductModel> products) {
-    _products = products;
+  void setProducts(List<ProductModel?> products) {
+    if (products.isEmpty) {
+      _products = [];
+      notifyListeners();
+      return;
+    }
+    _products = products.map((e) => e!).toList();
     notifyListeners();
   }
 
@@ -101,12 +114,12 @@ class ProductProvider with ChangeNotifier {
     return _firestoreRepo.streamProductById(productId, user!);
   }
 
-  Future<void> getProducts(User? user) async {
+  void getProducts(User? user, bool isFirstTime) async {
     setLoading(true);
     try {
       List<Map<String, dynamic>>? products = await _firestoreRepo.getProducts(user!);
       List<ProductModel> productModels = [];
-      products?.forEach((element) async {
+      products!.forEach((element) async {
         Timestamp createdAt = element["createdAt"];
         Timestamp updatedAt = element["updatedAt"];
         element["createdAt"] = createdAt.toDate();
@@ -126,7 +139,12 @@ class ProductProvider with ChangeNotifier {
         productModels.add(model);
       });
 
+      print("getProducts");
+      print(productModels);
+      print("getProducts");
+
       setProducts(productModels);
+      notifyListeners();
     } on FirebaseException catch (e) {
       HandleException.handleException(e.code, message: e.message);
     }
@@ -282,7 +300,8 @@ class ProductProvider with ChangeNotifier {
     return priceModelHistory;
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> streamHistoryByProductId(String productId, User? user) {
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamHistoryByProductId(String productId) {
+    User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return Stream.empty();
     } else {

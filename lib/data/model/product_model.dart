@@ -19,14 +19,20 @@ class ProductModel {
     this.pricesHistory,
   });
 
-  factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
-        id: json["id"],
-        name: json["name"],
-        photoUrl: json["photoUrl"],
-        createdAt: json["createdAt"],
-        updatedAt: json["updatedAt"],
-        prices: List<PriceModel>.from(json["prices"].map((x) => PriceModel.fromJson(x))),
-      );
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
+    Timestamp createdAt = json["createdAt"];
+    Timestamp updatedAt = json["updatedAt"];
+    json["createdAt"] = createdAt.toDate();
+    json["updatedAt"] = updatedAt.toDate();
+    return ProductModel(
+      id: json["id"],
+      name: json["name"],
+      photoUrl: json["photoUrl"],
+      createdAt: json["createdAt"],
+      updatedAt: json["updatedAt"],
+      prices: List<PriceModel>.from(json["prices"].map((x) => PriceModel.fromJson(x))),
+    );
+  }
 
   factory ProductModel.fromDocument(DocumentSnapshot json) => ProductModel(
         id: json.id,
